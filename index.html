@@ -137,8 +137,9 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     <input id="key" type="password" autocomplete="off" placeholder="AIza...">
     <p class="hint">Gratis dari aistudio.google.com/apikey. Key hanya tersimpan di browser ini (localStorage) dan dikirim langsung ke Google. Jangan tulis key di dalam file atau repo.</p>
     <label for="model">Model</label>
-    <input id="model" placeholder="gemini-3.8-flash">
-    <p class="hint">Jika model ditolak atau kuota habis, ganti dengan nama model lain di daftar AI Studio, misalnya versi flash-lite.</p>
+    <input id="model" list="modelList" placeholder="gemini-3.8-flash">
+    <datalist id="modelList"><option value="gemini-3.8-flash"><option value="gemini-3.7-flash"><option value="gemini-3.6-flash"></datalist>
+    <p class="hint">Jika kuota model ini habis, aplikasi otomatis mencoba model lain (3.7 lalu 3.6). Kuota dihitung terpisah per model.</p>
     <label for="gayaAku">Catatan gaya tulisanmu (opsional)</label>
     <textarea id="gayaAku" placeholder="Contoh: pakai sapaan 'kak', hindari kata 'murah', jangan pakai emoji berlebihan"></textarea>
     <button class="btn" id="simpan">Simpan pengaturan</button>
@@ -335,33 +336,54 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     var parts = [{text: buildPrompt()}];
     if(tab!=="riset") images.forEach(function(src){parts.push({inline_data:{mime_type:"image/jpeg", data: src.split(",")[1]}})});
     try{
-      var model = store.get("gm") || "gemini-3.8-flash";
-      var isG3 = /gemini-3/.test(model);
-      var gen = tab==="riset" ? {} : {responseMimeType:"application/json"};
-      if(!isG3) gen.temperature = tab==="riset" ? 0.5 : 0.9;
-      else if(tab!=="riset") gen.thinkingConfig = {thinkingLevel:"low"};
-      var payload = {contents:[{role:"user",parts:parts}], generationConfig:gen};
-      if(tab==="riset") payload.tools = [{google_search:{}}];
-      var r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
-        method:"POST",
-        headers:{"Content-Type":"application/json","x-goog-api-key":key},
-        body: JSON.stringify(payload)
-      });
-      var j = await r.json();
+      var chosen = store.get("gm") || "gemini-3.8-flash";
+      var tryList = [chosen,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash"].filter(function(m,i,a){return a.indexOf(m)===i});
+      var modes = tab==="riset" ? [true,false] : [false];
+      var r = null, j = {}, usedModel = "", usedSearch = false, lastMsg = "";
+      outer:
+      for(var si=0; si<modes.length; si++){
+        for(var mi=0; mi<tryList.length; mi++){
+          var model = tryList[mi], isG3 = /gemini-3/.test(model);
+          var gen = tab==="riset" ? {} : {responseMimeType:"application/json"};
+          if(!isG3) gen.temperature = tab==="riset" ? 0.5 : 0.9;
+          else if(tab!=="riset") gen.thinkingConfig = {thinkingLevel:"low"};
+          var ps = parts;
+          if(tab==="riset" && !modes[si]) ps = [{text: parts[0].text + "\n\n(Catatan: pencarian web tidak tersedia kali ini. Jangan mengaku punya data terbaru. Tulis sebagai dugaan dari pola musiman dan pengetahuan umum, dan beri keyakinan rendah.)"}];
+          var payload = {contents:[{role:"user",parts:ps}], generationConfig:gen};
+          if(modes[si]) payload.tools = [{google_search:{}}];
+          r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
+            method:"POST",
+            headers:{"Content-Type":"application/json","x-goog-api-key":key},
+            body: JSON.stringify(payload)
+          });
+          try{ j = await r.json() }catch(e){ j = {} }
+          if(r.ok){ usedModel = model; usedSearch = modes[si]; break outer; }
+          lastMsg = (j.error && j.error.message) || ("Kode " + r.status);
+          if(r.status!==429 && r.status!==404) break outer;
+        }
+      }
       if(!r.ok){
-        var m = (j.error && j.error.message) || ("Kode " + r.status);
-        if(r.status===429) m = "Kuota gratis sedang habis. Tunggu beberapa menit atau ganti model di Pengaturan.";
-        if(r.status===404 || /no longer available/i.test(m)) m = "Model ini tidak tersedia untuk akun baru. Buka Pengaturan, lalu ganti Model dengan gemini-3.8-flash atau gemini-3.7-flash.";
+        var m = lastMsg;
+        if(r.status===429) m = "Kuota habis untuk model yang dicoba (" + tryList.join(", ") + "). Pesan dari Google: " + lastMsg.slice(0,280);
+        else if(r.status===404 || /no longer available/i.test(m)) m = "Model tidak tersedia untuk akun ini. Buka Pengaturan, lalu ganti Model dengan gemini-3.8-flash atau gemini-3.7-flash.";
         throw new Error(m);
+      }
+      function note(){
+        var t = [];
+        if(usedModel!==chosen) t.push("model " + usedModel + " dipakai karena " + chosen + " sedang tidak bisa");
+        if(tab==="riset" && !usedSearch) t.push("tanpa pencarian web, jadi anggap hasilnya dugaan");
+        if(!t.length) return;
+        var p = document.createElement("p"); p.className = "hint"; p.textContent = "Catatan: " + t.join("; ") + "."; $("hasil").appendChild(p);
       }
       var txt = (((j.candidates||[])[0]||{}).content||{}).parts;
       txt = txt ? txt.map(function(p){return p.text||""}).join("") : "";
-      if(tab==="riset"){ if(!txt) throw new Error("Jawaban kosong. Coba lagi."); renderRiset(txt, j); return; }
+      if(tab==="riset"){ if(!txt) throw new Error("Jawaban kosong. Coba lagi."); renderRiset(txt, j); note(); return; }
       var data;
       try{data = JSON.parse(txt.replace(/^```json|```$/g,"").trim())}catch(e){data = null}
       if(data && Array.isArray(data.hasil)) showCards(data.hasil);
       else if(txt) showCards([{label:"Hasil", teks:txt}]);
       else throw new Error("Jawaban kosong. Coba lagi atau ganti gambar.");
+      note();
     }catch(e){
       showError("Gagal: " + e.message);
     }finally{

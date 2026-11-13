@@ -1,4 +1,4 @@
-var CACHE = "asritools-v3";
+var CACHE = "asritools-v4";
 var SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 self.addEventListener("install", function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(SHELL)}).then(function(){return self.skipWaiting()}));
