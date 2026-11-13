@@ -97,8 +97,8 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <div id="opsiNarasi">
         <label for="gaya">Gaya bahasa</label>
         <select id="gaya">
-          <option>Tenang dan elegan</option>
-          <option>Hangat seperti bercerita ke teman</option>
+          <option>Santai dan hangat, seperti ngobrol</option>
+          <option>Elegan tapi tetap luwes</option>
           <option>Edukatif dan ringan</option>
           <option>Singkat dan puitis</option>
         </select>
@@ -129,7 +129,11 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <button class="btn" id="go">Buat narasi</button>
     </section>
 
-    <section aria-live="polite" id="hasil"><div class="empty">Hasil akan muncul di sini.</div></section>
+    <section aria-live="polite" id="hasil">
+      <div id="h-narasi"><div class="empty">Hasil akan muncul di sini.</div></div>
+      <div id="h-video" class="hide"><div class="empty">Hasil akan muncul di sini.</div></div>
+      <div id="h-riset" class="hide"><div class="empty">Hasil akan muncul di sini.</div></div>
+    </section>
   </div>
 
   <section id="setelan" class="panel hide" style="max-width:560px">
@@ -151,7 +155,9 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 <script>
 (function(){
   var $ = function(id){return document.getElementById(id)};
-  var tab = "narasi", images = [];
+  var tab = "narasi", runTab = "narasi", images = [];
+  function out(){return $("h-" + runTab)}
+  function goLabel(t){return t==="video" ? "Buat rancangan video" : t==="riset" ? "Cari tren" : "Buat narasi"}
   var store = {
     get:function(k){try{return localStorage.getItem(k)||""}catch(e){return ""}},
     set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}
@@ -199,8 +205,8 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     $("opsiVideo").classList.toggle("hide", t!=="video");
     $("fieldsProduk").classList.toggle("hide", t==="riset");
     $("opsiRiset").classList.toggle("hide", t!=="riset");
-    $("go").textContent = t==="video" ? "Buat rancangan video" : t==="riset" ? "Cari tren" : "Buat narasi";
-    $("hasil").innerHTML = '<div class="empty">Hasil akan muncul di sini.</div>';
+    $("go").textContent = goLabel(t);
+    ["narasi","video","riset"].forEach(function(n){$("h-"+n).classList.toggle("hide", n!==t)});
   }
   $("tabs").addEventListener("click", function(e){var b=e.target.closest(".tab"); if(b) setTab(b.dataset.tab)});
   $("dropLabel").addEventListener("keydown", function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault(); $("gambar").click()}});
@@ -245,10 +251,10 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 
   function showError(msg){
     var d = document.createElement("div"); d.className = "err"; d.textContent = msg;
-    $("hasil").innerHTML = ""; $("hasil").appendChild(d);
+    out().innerHTML = ""; out().appendChild(d);
   }
   function showCards(items, useBtn){
-    var box = $("hasil"); box.innerHTML = "";
+    var box = out(); box.innerHTML = "";
     items.forEach(function(it){
       var c = document.createElement("article"); c.className = "card";
       var top = document.createElement("div"); top.className = "top";
@@ -297,7 +303,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       links.slice(0,8).forEach(function(l){
         var a = document.createElement("a"); a.href = l.u; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = l.t; c.appendChild(a);
       });
-      $("hasil").appendChild(c);
+      out().appendChild(c);
     }
   }
   function buildPrompt(){
@@ -307,7 +313,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       "\nLink produk (hanya acuan, jangan dibuka): " + ($("link").value.trim() || "-") +
       "\nDetail dari penjual: " + ($("detail").value.trim() || "-");
     var gayaAku = store.get("gs");
-    var dasar = "Kamu penulis konten afiliasi berbahasa Indonesia. Prinsip: soft-selling. Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'murah', 'buruan', 'checkout sekarang'. Isi utama adalah pengetahuan yang benar-benar berguna tentang jenis bahan, cara kerja, cara memilih, atau cara merawat barang tersebut. Produk disebut lembut di akhir sebagai contoh, bukan sebagai ajakan beli. Jangan mengarang spesifikasi yang tidak ada di data atau gambar; kalau ragu, tulis secara umum. " + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "");
+    var dasar = "Kamu penulis konten afiliasi berbahasa Indonesia. Prinsip: soft-selling. GAYA BAHASA (penting): tulis seperti orang sungguhan yang berbagi di sosmed, bukan seperti artikel, brosur, atau iklan resmi. Pakai bahasa lisan sehari-hari yang tetap rapi: kalimat pendek, sapaan 'kamu' atau 'kalian' (ikuti catatan gaya pemilik akun jika ada), dan partikel ringan seperti 'nih', 'lho', 'ya', 'sih' secukupnya, jangan berlebihan. Hindari kata baku yang kaku seperti 'merupakan', 'sehingga', 'dapat', 'memiliki', 'tersebut', 'oleh karena itu', 'terdapat', dan kalimat pasif panjang. Buka dengan satu kalimat yang memancing rasa ingin tahu (pertanyaan, fakta kecil, atau kejadian sehari-hari), bukan kalimat definisi. Emoji maksimal 1 sampai 2 dan hanya kalau terasa natural. Contoh kaku: 'Kain linen merupakan bahan alami yang memiliki sirkulasi udara baik.' Contoh luwes: 'Pernah nggak sih pakai kemeja seharian tapi badan tetap adem? Biasanya itu kerjaan kain linen.' Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'murah', 'buruan', 'checkout sekarang'. Isi utama adalah pengetahuan yang benar-benar berguna tentang jenis bahan, cara kerja, cara memilih, atau cara merawat barang tersebut. Produk disebut lembut di akhir sebagai contoh, bukan sebagai ajakan beli. Jangan mengarang spesifikasi yang tidak ada di data atau gambar; kalau ragu, tulis secara umum. " + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "");
     if(tab === "narasi"){
       var p = $("platform").value;
       var minta = p==="fb" ? "2 versi postingan Facebook (4-6 kalimat, boleh 1 paragraf pembuka yang menarik)" :
@@ -329,26 +335,27 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   }
 
   $("go").onclick = async function(){
+    var T = tab; runTab = T;
     var key = store.get("gk");
     if(!key){showError("Aplikasi belum disiapkan di perangkat ini. Buka tab Pengaturan untuk memasukkan key, atau buka link setup dari Dako."); return}
-    if(tab!=="riset" && !$("jenis").value.trim()){showError("Isi jenis barang dulu."); return}
+    if(T!=="riset" && !$("jenis").value.trim()){showError("Isi jenis barang dulu."); return}
     var btn = $("go"); btn.disabled = true; var old = btn.textContent; btn.textContent = "Sedang menulis...";
     var parts = [{text: buildPrompt()}];
-    if(tab!=="riset") images.forEach(function(src){parts.push({inline_data:{mime_type:"image/jpeg", data: src.split(",")[1]}})});
+    if(T!=="riset") images.forEach(function(src){parts.push({inline_data:{mime_type:"image/jpeg", data: src.split(",")[1]}})});
     try{
       var chosen = store.get("gm") || "gemini-3.8-flash";
       var tryList = [chosen,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash"].filter(function(m,i,a){return a.indexOf(m)===i});
-      var modes = tab==="riset" ? [true,false] : [false];
+      var modes = T==="riset" ? [true,false] : [false];
       var r = null, j = {}, usedModel = "", usedSearch = false, lastMsg = "";
       outer:
       for(var si=0; si<modes.length; si++){
         for(var mi=0; mi<tryList.length; mi++){
           var model = tryList[mi], isG3 = /gemini-3/.test(model);
-          var gen = tab==="riset" ? {} : {responseMimeType:"application/json"};
-          if(!isG3) gen.temperature = tab==="riset" ? 0.5 : 0.9;
-          else if(tab!=="riset") gen.thinkingConfig = {thinkingLevel:"low"};
+          var gen = T==="riset" ? {} : {responseMimeType:"application/json"};
+          if(!isG3) gen.temperature = T==="riset" ? 0.5 : 0.9;
+          else if(T!=="riset") gen.thinkingConfig = {thinkingLevel:"low"};
           var ps = parts;
-          if(tab==="riset" && !modes[si]) ps = [{text: parts[0].text + "\n\n(Catatan: pencarian web tidak tersedia kali ini. Jangan mengaku punya data terbaru. Tulis sebagai dugaan dari pola musiman dan pengetahuan umum, dan beri keyakinan rendah.)"}];
+          if(T==="riset" && !modes[si]) ps = [{text: parts[0].text + "\n\n(Catatan: pencarian web tidak tersedia kali ini. Jangan mengaku punya data terbaru. Tulis sebagai dugaan dari pola musiman dan pengetahuan umum, dan beri keyakinan rendah.)"}];
           var payload = {contents:[{role:"user",parts:ps}], generationConfig:gen};
           if(modes[si]) payload.tools = [{google_search:{}}];
           for(var at=0; at<3; at++){
@@ -381,13 +388,13 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       function note(){
         var t = [];
         if(usedModel!==chosen) t.push("model " + usedModel + " dipakai karena " + chosen + " sedang tidak bisa");
-        if(tab==="riset" && !usedSearch) t.push("tanpa pencarian web, jadi anggap hasilnya dugaan");
+        if(T==="riset" && !usedSearch) t.push("tanpa pencarian web, jadi anggap hasilnya dugaan");
         if(!t.length) return;
-        var p = document.createElement("p"); p.className = "hint"; p.textContent = "Catatan: " + t.join("; ") + "."; $("hasil").appendChild(p);
+        var p = document.createElement("p"); p.className = "hint"; p.textContent = "Catatan: " + t.join("; ") + "."; out().appendChild(p);
       }
       var txt = (((j.candidates||[])[0]||{}).content||{}).parts;
       txt = txt ? txt.map(function(p){return p.text||""}).join("") : "";
-      if(tab==="riset"){ if(!txt) throw new Error("Jawaban kosong. Coba lagi."); renderRiset(txt, j); note(); return; }
+      if(T==="riset"){ if(!txt) throw new Error("Jawaban kosong. Coba lagi."); renderRiset(txt, j); note(); return; }
       var data;
       try{data = JSON.parse(txt.replace(/^```json|```$/g,"").trim())}catch(e){data = null}
       if(data && Array.isArray(data.hasil)) showCards(data.hasil);
@@ -397,7 +404,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     }catch(e){
       showError("Gagal: " + e.message);
     }finally{
-      btn.disabled = false; btn.textContent = old;
+      btn.disabled = false; btn.textContent = goLabel(tab);
     }
   };
 })();
