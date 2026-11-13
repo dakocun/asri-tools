@@ -137,7 +137,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     <input id="key" type="password" autocomplete="off" placeholder="AIza...">
     <p class="hint">Gratis dari aistudio.google.com/apikey. Key hanya tersimpan di browser ini (localStorage) dan dikirim langsung ke Google. Jangan tulis key di dalam file atau repo.</p>
     <label for="model">Model</label>
-    <input id="model" placeholder="gemini-2.5-flash">
+    <input id="model" placeholder="gemini-3.8-flash">
     <p class="hint">Jika model ditolak atau kuota habis, ganti dengan nama model lain di daftar AI Studio, misalnya versi flash-lite.</p>
     <label for="gayaAku">Catatan gaya tulisanmu (opsional)</label>
     <textarea id="gayaAku" placeholder="Contoh: pakai sapaan 'kak', hindari kata 'murah', jangan pakai emoji berlebihan"></textarea>
@@ -155,7 +155,8 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     get:function(k){try{return localStorage.getItem(k)||""}catch(e){return ""}},
     set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}
   };
-  $("key").value = store.get("gk"); $("model").value = store.get("gm") || "gemini-2.5-flash"; $("gayaAku").value = store.get("gs");
+  if(store.get("gm")==="gemini-"+"2.5-flash") store.set("gm","gemini-3.8-flash");
+  $("key").value = store.get("gk"); $("model").value = store.get("gm") || "gemini-3.8-flash"; $("gayaAku").value = store.get("gs");
 
   (function(){
     var h = location.hash.replace(/^#/,"");
@@ -163,13 +164,14 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       var q = new URLSearchParams(h);
       if(q.get("k")) store.set("gk", q.get("k"));
       if(q.get("m")) store.set("gm", q.get("m"));
-      $("key").value = store.get("gk"); $("model").value = store.get("gm") || "gemini-2.5-flash";
+      if(store.get("gm")==="gemini-"+"2.5-flash") store.set("gm","gemini-3.8-flash");
+  $("key").value = store.get("gk"); $("model").value = store.get("gm") || "gemini-3.8-flash";
       try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
     }
   })();
   $("linkSetup").onclick = function(){
     var k = $("key").value.trim(); if(!k){return}
-    var u = location.origin + location.pathname + "#k=" + encodeURIComponent(k) + "&m=" + encodeURIComponent($("model").value.trim()||"gemini-2.5-flash");
+    var u = location.origin + location.pathname + "#k=" + encodeURIComponent(k) + "&m=" + encodeURIComponent($("model").value.trim()||"gemini-3.8-flash");
     var b = $("linkSetup");
     var done = function(){b.textContent="Link tersalin"; setTimeout(function(){b.textContent="Salin link setup untuk HP lain"},1500)};
     if(navigator.clipboard) navigator.clipboard.writeText(u).then(done,function(){});
@@ -203,7 +205,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   $("dropLabel").addEventListener("keydown", function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault(); $("gambar").click()}});
 
   $("simpan").onclick = function(){
-    store.set("gk",$("key").value.trim()); store.set("gm",$("model").value.trim()||"gemini-2.5-flash"); store.set("gs",$("gayaAku").value.trim());
+    store.set("gk",$("key").value.trim()); store.set("gm",$("model").value.trim()||"gemini-3.8-flash"); store.set("gs",$("gayaAku").value.trim());
     $("simpan").textContent = "Tersimpan"; setTimeout(function(){$("simpan").textContent="Simpan pengaturan"},1400);
   };
 
@@ -333,16 +335,23 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     var parts = [{text: buildPrompt()}];
     if(tab!=="riset") images.forEach(function(src){parts.push({inline_data:{mime_type:"image/jpeg", data: src.split(",")[1]}})});
     try{
-      var model = store.get("gm") || "gemini-2.5-flash";
+      var model = store.get("gm") || "gemini-3.8-flash";
+      var isG3 = /gemini-3/.test(model);
+      var gen = tab==="riset" ? {} : {responseMimeType:"application/json"};
+      if(!isG3) gen.temperature = tab==="riset" ? 0.5 : 0.9;
+      else if(tab!=="riset") gen.thinkingConfig = {thinkingLevel:"low"};
+      var payload = {contents:[{role:"user",parts:parts}], generationConfig:gen};
+      if(tab==="riset") payload.tools = [{google_search:{}}];
       var r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
         method:"POST",
         headers:{"Content-Type":"application/json","x-goog-api-key":key},
-        body: JSON.stringify(tab==="riset" ? {contents:[{role:"user",parts:parts}], tools:[{google_search:{}}], generationConfig:{temperature:0.5}} : {contents:[{role:"user",parts:parts}], generationConfig:{temperature:0.9, responseMimeType:"application/json"}})
+        body: JSON.stringify(payload)
       });
       var j = await r.json();
       if(!r.ok){
         var m = (j.error && j.error.message) || ("Kode " + r.status);
         if(r.status===429) m = "Kuota gratis sedang habis. Tunggu beberapa menit atau ganti model di Pengaturan.";
+        if(r.status===404 || /no longer available/i.test(m)) m = "Model ini tidak tersedia untuk akun baru. Buka Pengaturan, lalu ganti Model dengan gemini-3.8-flash atau gemini-3.7-flash.";
         throw new Error(m);
       }
       var txt = (((j.candidates||[])[0]||{}).content||{}).parts;
