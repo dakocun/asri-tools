@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="theme-color" content="#FFF5F8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AsriTools">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AsriTools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF5F8; --surface:#FFFFFF; --ink:#3D2B33; --muted:#8C6E78; --line:#F6DCE5;
+  --accent:#B8476B; --accent-ink:#fff; --soft:#FDE6EE; --warn:#A63D52;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Nunito",system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 18px 64px}
+h1{font:500 clamp(30px,5vw,42px)/1.1 "Fredoka","Nunito",system-ui,sans-serif;margin:0 0 6px;letter-spacing:0}
+.sub{color:var(--muted);margin:0 0 26px;max-width:56ch}
+.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.panel{box-shadow:0 8px 24px -16px rgba(184,71,107,.35);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
+label{display:block;font-weight:500;font-size:14px;margin:14px 0 5px}
+label:first-child{margin-top:0}
+input,textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+textarea{resize:vertical;min-height:84px}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,.drop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted);margin:5px 0 0}
+.drop{display:block;border:1.5px dashed var(--line);border-radius:14px;padding:14px;text-align:center;color:var(--muted);cursor:pointer;font-size:14px}
+.drop:hover{border-color:var(--accent)}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.thumb{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb button{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:12px;line-height:20px;padding:0;cursor:pointer}
+.tabs{display:flex;overflow-x:auto;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:9px 12px;white-space:nowrap;font:inherit;font-weight:500;color:var(--muted);cursor:pointer;margin-bottom:-1px}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.btn{font:inherit;font-weight:600;border:0;border-radius:14px;padding:11px 18px;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%;margin-top:18px}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.ghost{background:var(--soft);color:var(--ink);width:auto;margin:0;padding:6px 12px;font-size:13px;font-weight:500}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px 20px;margin-bottom:14px}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.card h3{margin:0;font:500 19px/1.2 "Fredoka","Nunito",system-ui,sans-serif}
+.card p{margin:0;white-space:pre-wrap;max-width:68ch}
+.empty{color:var(--muted);padding:34px 10px;text-align:center}
+.err{color:var(--warn);background:var(--soft);border-radius:14px;padding:12px 14px;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hide{display:none}
+.acts{display:flex;gap:6px;flex-shrink:0}
+.src a{display:block;color:var(--accent);font-size:14px;margin:4px 0;word-break:break-word}
+.install{display:inline-block;margin:0 0 18px;font:inherit;font-weight:600;font-size:14px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:7px 16px;cursor:pointer}
+.iosnote{font-size:13px;color:var(--muted);margin:0 0 18px}
+body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AsriTools</h1>
+  <p class="sub">Isi data barang, tekan tombol, lalu salin hasilnya. Untuk postingan Facebook, story WhatsApp, dan video TikTok Shop.</p>
+
+  <button class="install hide" id="install" type="button">Pasang di layar utama</button>
+  <p class="iosnote hide" id="iosnote">Di iPhone: buka lewat Safari, ketuk tombol Bagikan, lalu pilih Tambah ke Layar Utama.</p>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" aria-selected="true" data-tab="narasi">Narasi</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="video">Video TikTok</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="riset">Riset tren</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="setelan">Pengaturan</button>
+  </div>
+
+  <div id="main" class="grid">
+    <section class="panel" aria-label="Data barang">
+      <div id="fieldsProduk">
+      <label for="jenis">Jenis barang</label>
+      <input id="jenis" placeholder="Contoh: kemeja linen pria">
+      <label for="nama">Nama produk (opsional)</label>
+      <input id="nama" placeholder="Nama di toko">
+      <label for="link">Link produk</label>
+      <input id="link" type="url" placeholder="https://...">
+      <p class="hint">Link hanya disimpan sebagai acuan. Browser tidak bisa membaca isi halaman toko, jadi tempel detail penting di kolom bawah.</p>
+      <label for="detail">Detail dari halaman produk (opsional)</label>
+      <textarea id="detail" placeholder="Bahan, ukuran, fitur, hal yang ingin disorot"></textarea>
+      <label>Gambar produk (maks. 4)</label>
+      <label class="drop" tabindex="0" for="gambar" id="dropLabel">Pilih gambar dari galeri</label>
+      <input id="gambar" type="file" accept="image/*" multiple class="hide">
+      <div class="thumbs" id="thumbs"></div>
+      </div>
+      <div id="opsiNarasi">
+        <label for="gaya">Gaya bahasa</label>
+        <select id="gaya">
+          <option>Tenang dan elegan</option>
+          <option>Hangat seperti bercerita ke teman</option>
+          <option>Edukatif dan ringan</option>
+          <option>Singkat dan puitis</option>
+        </select>
+        <label for="platform">Untuk</label>
+        <select id="platform">
+          <option value="keduanya">Facebook dan story WA</option>
+          <option value="fb">Facebook saja</option>
+          <option value="wa">Story WA saja</option>
+        </select>
+      </div>
+      <div id="opsiVideo" class="hide">
+        <div class="row">
+          <div><label for="durasi">Durasi</label>
+            <select id="durasi"><option>15 detik</option><option selected>30 detik</option><option>45 detik</option><option>60 detik</option></select></div>
+          <div><label for="gayaVideo">Gaya</label>
+            <select id="gayaVideo"><option>Estetik dan tenang</option><option>Cerita sehari-hari</option><option>Edukasi singkat</option><option>Sebelum dan sesudah</option></select></div>
+        </div>
+      </div>
+      <div id="opsiRiset" class="hide">
+        <label for="platRiset">Platform</label>
+        <select id="platRiset"><option>Shopee Affiliate</option><option>TikTok Shop Affiliate</option><option>Shopee dan TikTok Shop</option></select>
+        <label for="bidang">Bidang yang diminati (opsional)</label>
+        <input id="bidang" placeholder="Contoh: dapur, fashion muslim, perawatan kulit">
+        <label for="hargaRiset">Kisaran harga barang</label>
+        <select id="hargaRiset"><option value="semua harga">Semua harga</option><option value="di bawah Rp50 ribu">Di bawah Rp50 ribu</option><option value="Rp50 ribu sampai Rp200 ribu">Rp50 ribu sampai Rp200 ribu</option><option value="di atas Rp200 ribu">Di atas Rp200 ribu</option></select>
+        <p class="hint">Hasil diambil dari pencarian web, bukan dari data internal Shopee atau TikTok Shop, jadi anggap sebagai bahan awal. Cek lagi di dashboard afiliasi sebelum promosi. Kuota pencarian gratis per hari lebih kecil daripada kuota menulis.</p>
+      </div>
+      <button class="btn" id="go">Buat narasi</button>
+    </section>
+
+    <section aria-live="polite" id="hasil"><div class="empty">Hasil akan muncul di sini.</div></section>
+  </div>
+
+  <section id="setelan" class="panel hide" style="max-width:560px">
+    <label for="key">API key Gemini</label>
+    <input id="key" type="password" autocomplete="off" placeholder="AIza...">
+    <p class="hint">Gratis dari aistudio.google.com/apikey. Key hanya tersimpan di browser ini (localStorage) dan dikirim langsung ke Google. Jangan tulis key di dalam file atau repo.</p>
+    <label for="model">Model</label>
+    <input id="model" placeholder="gemini-2.5-flash">
+    <p class="hint">Jika model ditolak atau kuota habis, ganti dengan nama model lain di daftar AI Studio, misalnya versi flash-lite.</p>
+    <label for="gayaAku">Catatan gaya tulisanmu (opsional)</label>
+    <textarea id="gayaAku" placeholder="Contoh: pakai sapaan 'kak', hindari kata 'murah', jangan pakai emoji berlebihan"></textarea>
+    <button class="btn" id="simpan">Simpan pengaturan</button>
+    <button class="btn ghost" id="linkSetup" style="margin-top:12px">Salin link setup untuk HP lain</button>
+    <p class="hint">Kirim link ini lewat chat pribadi ke HP yang akan dipakai. Sekali dibuka, key tersimpan otomatis dan link-nya hilang dari kolom alamat. Jangan dibagikan ke orang lain.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){return document.getElementById(id)};
+  var tab = "narasi", images = [];
+  var store = {
+    get:function(k){try{return localStorage.getItem(k)||""}catch(e){return ""}},
+    set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  };
+  $("key").value = store.get("gk"); $("model").value = store.get("gm") || "gemini-2.5-flash"; $("gayaAku").value = store.get("gs");
+
+  (function(){
+    var h = location.hash.replace(/^#/,"");
+    if(h.indexOf("k=")===0){
+      var q = new URLSearchParams(h);
+      if(q.get("k")) store.set("gk", q.get("k"));
+      if(q.get("m")) store.set("gm", q.get("m"));
+      $("key").value = store.get("gk"); $("model").value = store.get("gm") || "gemini-2.5-flash";
+      try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+    }
+  })();
+  $("linkSetup").onclick = function(){
+    var k = $("key").value.trim(); if(!k){return}
+    var u = location.origin + location.pathname + "#k=" + encodeURIComponent(k) + "&m=" + encodeURIComponent($("model").value.trim()||"gemini-2.5-flash");
+    var b = $("linkSetup");
+    var done = function(){b.textContent="Link tersalin"; setTimeout(function(){b.textContent="Salin link setup untuk HP lain"},1500)};
+    if(navigator.clipboard) navigator.clipboard.writeText(u).then(done,function(){});
+  };
+
+  var deferred = null;
+  window.addEventListener("beforeinstallprompt", function(e){e.preventDefault(); deferred = e; $("install").classList.remove("hide")});
+  $("install").onclick = function(){
+    if(!deferred) return;
+    deferred.prompt(); deferred.userChoice.then(function(){deferred = null; $("install").classList.add("hide")});
+  };
+  window.addEventListener("appinstalled", function(){$("install").classList.add("hide")});
+  var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if(!standalone && /iphone|ipad|ipod/i.test(navigator.userAgent)) $("iosnote").classList.remove("hide");
+  if("serviceWorker" in navigator) window.addEventListener("load", function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
+
+  function setTab(t){
+    tab = t;
+    document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-selected", b.dataset.tab===t)});
+    var isSet = t==="setelan";
+    $("main").classList.toggle("hide", isSet);
+    $("setelan").classList.toggle("hide", !isSet);
+    $("opsiNarasi").classList.toggle("hide", t!=="narasi");
+    $("opsiVideo").classList.toggle("hide", t!=="video");
+    $("fieldsProduk").classList.toggle("hide", t==="riset");
+    $("opsiRiset").classList.toggle("hide", t!=="riset");
+    $("go").textContent = t==="video" ? "Buat rancangan video" : t==="riset" ? "Cari tren" : "Buat narasi";
+    $("hasil").innerHTML = '<div class="empty">Hasil akan muncul di sini.</div>';
+  }
+  $("tabs").addEventListener("click", function(e){var b=e.target.closest(".tab"); if(b) setTab(b.dataset.tab)});
+  $("dropLabel").addEventListener("keydown", function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault(); $("gambar").click()}});
+
+  $("simpan").onclick = function(){
+    store.set("gk",$("key").value.trim()); store.set("gm",$("model").value.trim()||"gemini-2.5-flash"); store.set("gs",$("gayaAku").value.trim());
+    $("simpan").textContent = "Tersimpan"; setTimeout(function(){$("simpan").textContent="Simpan pengaturan"},1400);
+  };
+
+  function shrink(file){
+    return new Promise(function(res){
+      var r = new FileReader();
+      r.onload = function(){
+        var im = new Image();
+        im.onload = function(){
+          var m = 1024, s = Math.min(1, m/Math.max(im.width, im.height));
+          var c = document.createElement("canvas"); c.width = Math.round(im.width*s); c.height = Math.round(im.height*s);
+          c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+          res(c.toDataURL("image/jpeg",.8));
+        };
+        im.onerror = function(){res(null)};
+        im.src = r.result;
+      };
+      r.readAsDataURL(file);
+    });
+  }
+  function drawThumbs(){
+    var box = $("thumbs"); box.innerHTML = "";
+    images.forEach(function(src,i){
+      var d = document.createElement("div"); d.className = "thumb";
+      var im = document.createElement("img"); im.src = src; im.alt = "Gambar produk " + (i+1);
+      var b = document.createElement("button"); b.type = "button"; b.textContent = "×"; b.setAttribute("aria-label","Hapus gambar "+(i+1));
+      b.onclick = function(){images.splice(i,1); drawThumbs()};
+      d.appendChild(im); d.appendChild(b); box.appendChild(d);
+    });
+  }
+  $("gambar").onchange = async function(e){
+    var files = Array.from(e.target.files).slice(0, 4-images.length);
+    for(var f of files){var s = await shrink(f); if(s) images.push(s)}
+    e.target.value = ""; drawThumbs();
+  };
+
+  function showError(msg){
+    var d = document.createElement("div"); d.className = "err"; d.textContent = msg;
+    $("hasil").innerHTML = ""; $("hasil").appendChild(d);
+  }
+  function showCards(items, useBtn){
+    var box = $("hasil"); box.innerHTML = "";
+    items.forEach(function(it){
+      var c = document.createElement("article"); c.className = "card";
+      var top = document.createElement("div"); top.className = "top";
+      var h = document.createElement("h3"); h.textContent = it.label || "Hasil";
+      var b = document.createElement("button"); b.type = "button"; b.className = "btn ghost"; b.textContent = "Salin";
+      var p = document.createElement("p"); p.textContent = it.teks || "";
+      b.onclick = function(){
+        var done = function(){b.textContent="Tersalin"; setTimeout(function(){b.textContent="Salin"},1200)};
+        if(navigator.clipboard) navigator.clipboard.writeText(p.textContent).then(done,function(){});
+      };
+      var acts = document.createElement("div"); acts.className = "acts";
+      if(useBtn && !/^catatan/i.test(it.label||"")){
+        var u = document.createElement("button"); u.type = "button"; u.className = "btn ghost"; u.textContent = "Pakai";
+        u.onclick = function(){$("jenis").value = it.label; setTab("narasi"); window.scrollTo({top:0})};
+        acts.appendChild(u);
+      }
+      acts.appendChild(b);
+      top.appendChild(h); top.appendChild(acts); c.appendChild(top); c.appendChild(p); box.appendChild(c);
+    });
+  }
+
+  function buildRiset(){
+    var tgl = new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
+    var bidang = $("bidang").value.trim();
+    return "Kamu analis tren affiliate marketing untuk pasar Indonesia. Hari ini " + tgl + ". Gunakan Google Search untuk mencari informasi terbaru (utamanya 30 hari terakhir) tentang jenis produk yang sedang naik peminatannya di " + $("platRiset").value + ", termasuk momen musiman terdekat seperti kampanye tanggal kembar, gajian, libur, musim hujan, dan persiapan hari besar. " + (bidang ? "Fokus pada bidang: " + bidang + ". " : "") + "Kisaran harga: " + $("hargaRiset").value + ".\n\n" +
+      "Aturan penting: (1) Kamu tidak punya akses ke data internal Shopee atau TikTok Shop, jadi jangan mengarang angka penjualan, persentase komisi, atau peringkat. (2) Tulis hanya hal yang didukung hasil pencarian atau pola musiman yang masuk akal, dan nyatakan tingkat keyakinan. (3) Utamakan jenis produk yang bisa dibahas lewat pengetahuan bahan atau cara pakai, cocok untuk konten soft-selling, bukan barang yang hanya laku lewat diskon.\n\n" +
+      "Beri 6 ide jenis produk. Mulai langsung dengan baris judul, tanpa kalimat pembuka. Format setiap ide persis begini:\n### Nama jenis produk\nKenapa sedang naik: ...\nSudut konten halus: ...\nPersaingan dan risiko: ...\nKeyakinan: rendah, sedang, atau tinggi, disertai alasan singkat\nCara cek sendiri: ...\n\n" +
+      "Tutup dengan satu bagian '### Catatan' berisi 3 langkah memeriksa ide di dashboard afiliasi (komisi, penjualan, stok) sebelum promosi. Tulis dalam bahasa Indonesia sederhana, tanpa tanda bintang dan tanpa format markdown selain awalan ###.";
+  }
+  function renderRiset(txt, j){
+    txt = txt.replace(/\*\*/g,"").replace(/^\s*\*\s+/gm,"- ");
+    var items = txt.split(/^###\s+/m).map(function(c){return c.trim()}).filter(Boolean).map(function(c){
+      var i = c.indexOf("\n");
+      return i<0 ? {label:c, teks:""} : {label:c.slice(0,i).trim(), teks:c.slice(i+1).trim()};
+    });
+    if(!items.length) throw new Error("Jawaban kosong. Coba lagi.");
+    showCards(items, true);
+    var gc = (((j.candidates||[])[0]||{}).groundingMetadata||{}).groundingChunks || [], seen = {}, links = [];
+    gc.forEach(function(g){
+      var w = g.web; if(!w || !/^https?:\/\//.test(w.uri||"")) return;
+      var t = w.title || w.uri; if(seen[t]) return; seen[t] = 1; links.push({t:t, u:w.uri});
+    });
+    if(links.length){
+      var c = document.createElement("article"); c.className = "card src";
+      var h = document.createElement("h3"); h.textContent = "Sumber pencarian"; h.style.marginBottom = "8px"; c.appendChild(h);
+      links.slice(0,8).forEach(function(l){
+        var a = document.createElement("a"); a.href = l.u; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = l.t; c.appendChild(a);
+      });
+      $("hasil").appendChild(c);
+    }
+  }
+  function buildPrompt(){
+    if(tab==="riset") return buildRiset();
+    var info = "Jenis barang: " + $("jenis").value.trim() +
+      "\nNama produk: " + ($("nama").value.trim() || "-") +
+      "\nLink produk (hanya acuan, jangan dibuka): " + ($("link").value.trim() || "-") +
+      "\nDetail dari penjual: " + ($("detail").value.trim() || "-");
+    var gayaAku = store.get("gs");
+    var dasar = "Kamu penulis konten afiliasi berbahasa Indonesia. Prinsip: soft-selling. Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'murah', 'buruan', 'checkout sekarang'. Isi utama adalah pengetahuan yang benar-benar berguna tentang jenis bahan, cara kerja, cara memilih, atau cara merawat barang tersebut. Produk disebut lembut di akhir sebagai contoh, bukan sebagai ajakan beli. Jangan mengarang spesifikasi yang tidak ada di data atau gambar; kalau ragu, tulis secara umum. " + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "");
+    if(tab === "narasi"){
+      var p = $("platform").value;
+      var minta = p==="fb" ? "2 versi postingan Facebook (4-6 kalimat, boleh 1 paragraf pembuka yang menarik)" :
+                  p==="wa" ? "3 versi story WhatsApp (maksimal 2-3 kalimat pendek, mudah dibaca sekilas)" :
+                  "2 versi postingan Facebook (4-6 kalimat) dan 3 versi story WhatsApp (maksimal 2-3 kalimat pendek)";
+      return dasar + "\nGaya bahasa: " + $("gaya").value + ".\n\n" + info +
+        "\n\nBuat " + minta + ". Setiap versi mengambil sudut pengetahuan yang berbeda. Akhiri dengan satu baris saran hashtag (maks. 5) di item terpisah berlabel 'Hashtag'.\n" +
+        'Balas HANYA JSON valid: {"hasil":[{"label":"Facebook 1","teks":"..."}]}';
+    }
+    return dasar + "\nTarget: video TikTok Shop berdurasi " + $("durasi").value + ", gaya " + $("gayaVideo").value + ".\n\n" + info +
+      "\n\nBuat item-item berikut dalam urutan ini: " +
+      "(1) label 'Ide cerita': 3 ide premis singkat, " +
+      "(2) label 'Hook 3 detik pertama': 3 pilihan kalimat pembuka, " +
+      "(3) label 'Narasi voice over': naskah lengkap sesuai durasi, " +
+      "(4) label 'Alur scene': daftar scene dengan perkiraan detik, apa yang tampak, dan teks di layar, " +
+      "(5) satu item per scene berlabel 'Prompt video scene N': prompt dalam bahasa Inggris untuk generator video AI (subjek, gerak kamera, pencahayaan, suasana, rasio 9:16), tanpa teks atau logo di dalam gambar, " +
+      "(6) label 'Caption dan hashtag'.\n" +
+      'Balas HANYA JSON valid: {"hasil":[{"label":"...","teks":"..."}]}';
+  }
+
+  $("go").onclick = async function(){
+    var key = store.get("gk");
+    if(!key){showError("Aplikasi belum disiapkan di perangkat ini. Buka tab Pengaturan untuk memasukkan key, atau buka link setup dari Dako."); return}
+    if(tab!=="riset" && !$("jenis").value.trim()){showError("Isi jenis barang dulu."); return}
+    var btn = $("go"); btn.disabled = true; var old = btn.textContent; btn.textContent = "Sedang menulis...";
+    var parts = [{text: buildPrompt()}];
+    if(tab!=="riset") images.forEach(function(src){parts.push({inline_data:{mime_type:"image/jpeg", data: src.split(",")[1]}})});
+    try{
+      var model = store.get("gm") || "gemini-2.5-flash";
+      var r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
+        method:"POST",
+        headers:{"Content-Type":"application/json","x-goog-api-key":key},
+        body: JSON.stringify(tab==="riset" ? {contents:[{role:"user",parts:parts}], tools:[{google_search:{}}], generationConfig:{temperature:0.5}} : {contents:[{role:"user",parts:parts}], generationConfig:{temperature:0.9, responseMimeType:"application/json"}})
+      });
+      var j = await r.json();
+      if(!r.ok){
+        var m = (j.error && j.error.message) || ("Kode " + r.status);
+        if(r.status===429) m = "Kuota gratis sedang habis. Tunggu beberapa menit atau ganti model di Pengaturan.";
+        throw new Error(m);
+      }
+      var txt = (((j.candidates||[])[0]||{}).content||{}).parts;
+      txt = txt ? txt.map(function(p){return p.text||""}).join("") : "";
+      if(tab==="riset"){ if(!txt) throw new Error("Jawaban kosong. Coba lagi."); renderRiset(txt, j); return; }
+      var data;
+      try{data = JSON.parse(txt.replace(/^```json|```$/g,"").trim())}catch(e){data = null}
+      if(data && Array.isArray(data.hasil)) showCards(data.hasil);
+      else if(txt) showCards([{label:"Hasil", teks:txt}]);
+      else throw new Error("Jawaban kosong. Coba lagi atau ganti gambar.");
+    }catch(e){
+      showError("Gagal: " + e.message);
+    }finally{
+      btn.disabled = false; btn.textContent = old;
+    }
+  };
+})();
+</script>
+</body>
+</html>
