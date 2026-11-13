@@ -97,7 +97,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <div id="opsiNarasi">
         <label for="gaya">Gaya bahasa</label>
         <select id="gaya">
-          <option>Santai dan hangat, seperti ngobrol</option>
+          <option>Chat WA ke teman, paling santai</option>
           <option>Elegan tapi tetap luwes</option>
           <option>Edukatif dan ringan</option>
           <option>Singkat dan puitis</option>
@@ -276,6 +276,73 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     });
   }
 
+  function wrapText(ctx, text, maxW){
+    var words = String(text||"").split(/\s+/).filter(Boolean), lines = [], cur = "";
+    words.forEach(function(w){
+      var t = cur ? cur + " " + w : w;
+      if(ctx.measureText(t).width > maxW && cur){lines.push(cur); cur = w} else cur = t;
+    });
+    if(cur) lines.push(cur);
+    return lines;
+  }
+  function drawOverlay(cv, img, judul, sub, ratio){
+    var W = 1080, H = ratio==="story" ? 1920 : 1350;
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext("2d");
+    var sc = Math.max(W/img.width, H/img.height), dw = img.width*sc, dh = img.height*sc;
+    ctx.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);
+    var g = ctx.createLinearGradient(0, H*0.45, 0, H);
+    g.addColorStop(0, "rgba(90,20,50,0)"); g.addColorStop(1, "rgba(90,20,50,0.82)");
+    ctx.fillStyle = g; ctx.fillRect(0, H*0.45, W, H*0.55);
+    var x = 72, maxW = W - 144, y = H - (ratio==="story" ? 340 : 110);
+    ctx.fillStyle = "#fff"; ctx.textBaseline = "alphabetic"; ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 12;
+    ctx.font = "500 40px Nunito, sans-serif";
+    var sl = sub ? wrapText(ctx, sub, maxW) : [];
+    for(var i=sl.length-1; i>=0; i--){ctx.fillText(sl[i], x, y); y -= 54}
+    if(sl.length) y -= 14;
+    ctx.font = "600 78px Fredoka, Nunito, sans-serif";
+    var jl = wrapText(ctx, judul, maxW);
+    for(var k=jl.length-1; k>=0; k--){ctx.fillText(jl[k], x, y); y -= 92}
+  }
+  function renderGambar(items, imgs){
+    var wrap = document.createElement("article"); wrap.className = "card";
+    var top = document.createElement("div"); top.className = "top";
+    var h = document.createElement("h3"); h.textContent = "Gambar bertulis";
+    var sel = document.createElement("select"); sel.style.width = "auto"; sel.setAttribute("aria-label","Ukuran gambar");
+    sel.innerHTML = '<option value="post">Postingan 4:5</option><option value="story">Story 9:16</option>';
+    top.appendChild(h); top.appendChild(sel); wrap.appendChild(top);
+    var hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Teks bisa diubah. Setelah pas, unduh atau bagikan langsung ke WhatsApp."; wrap.appendChild(hint);
+    var draws = [];
+    var ready = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load("600 78px Fredoka"), document.fonts.load("500 40px Nunito")]).catch(function(){}) : Promise.resolve();
+    imgs.forEach(function(src, i){
+      var it = items[i] || {};
+      var box = document.createElement("div"); box.style.margin = "16px 0";
+      var cv = document.createElement("canvas"); cv.style.cssText = "width:100%;max-width:340px;height:auto;border-radius:14px;display:block;margin-bottom:8px";
+      var j = document.createElement("input"); j.value = it.judul || ""; j.setAttribute("aria-label","Judul gambar " + (i+1));
+      var sb = document.createElement("input"); sb.value = it.sub || ""; sb.setAttribute("aria-label","Teks kecil gambar " + (i+1)); sb.style.marginTop = "6px";
+      var row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;margin-top:8px";
+      var dl = document.createElement("button"); dl.type = "button"; dl.className = "btn ghost"; dl.textContent = "Unduh";
+      var sh = document.createElement("button"); sh.type = "button"; sh.className = "btn ghost"; sh.textContent = "Bagikan";
+      var im = new Image();
+      var draw = function(){ if(im.naturalWidth) drawOverlay(cv, im, j.value, sb.value, sel.value) };
+      im.onload = function(){ ready.then(draw) }; im.src = src;
+      j.oninput = draw; sb.oninput = draw; draws.push(draw);
+      var nama = "asritools-" + (i+1) + ".png";
+      dl.onclick = function(){ cv.toBlob(function(b){
+        var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){URL.revokeObjectURL(a.href)}, 3000);
+      }, "image/png") };
+      sh.onclick = function(){ cv.toBlob(function(b){
+        var f = new File([b], nama, {type:"image/png"});
+        if(navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f]}).catch(function(){});
+        else dl.click();
+      }, "image/png") };
+      row.appendChild(dl); row.appendChild(sh);
+      box.appendChild(cv); box.appendChild(j); box.appendChild(sb); box.appendChild(row); wrap.appendChild(box);
+    });
+    sel.onchange = function(){ draws.forEach(function(d){d()}) };
+    out().appendChild(wrap);
+  }
   function buildRiset(){
     var tgl = new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
     var bidang = $("bidang").value.trim();
@@ -313,15 +380,16 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       "\nLink produk (hanya acuan, jangan dibuka): " + ($("link").value.trim() || "-") +
       "\nDetail dari penjual: " + ($("detail").value.trim() || "-");
     var gayaAku = store.get("gs");
-    var dasar = "Kamu penulis konten afiliasi berbahasa Indonesia. Prinsip: soft-selling. GAYA BAHASA (penting): tulis seperti orang sungguhan yang berbagi di sosmed, bukan seperti artikel, brosur, atau iklan resmi. Pakai bahasa lisan sehari-hari yang tetap rapi: kalimat pendek, sapaan 'kamu' atau 'kalian' (ikuti catatan gaya pemilik akun jika ada), dan partikel ringan seperti 'nih', 'lho', 'ya', 'sih' secukupnya, jangan berlebihan. Hindari kata baku yang kaku seperti 'merupakan', 'sehingga', 'dapat', 'memiliki', 'tersebut', 'oleh karena itu', 'terdapat', dan kalimat pasif panjang. Buka dengan satu kalimat yang memancing rasa ingin tahu (pertanyaan, fakta kecil, atau kejadian sehari-hari), bukan kalimat definisi. Emoji maksimal 1 sampai 2 dan hanya kalau terasa natural. Contoh kaku: 'Kain linen merupakan bahan alami yang memiliki sirkulasi udara baik.' Contoh luwes: 'Pernah nggak sih pakai kemeja seharian tapi badan tetap adem? Biasanya itu kerjaan kain linen.' Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'murah', 'buruan', 'checkout sekarang'. Isi utama adalah pengetahuan yang benar-benar berguna tentang jenis bahan, cara kerja, cara memilih, atau cara merawat barang tersebut. Produk disebut lembut di akhir sebagai contoh, bukan sebagai ajakan beli. Jangan mengarang spesifikasi yang tidak ada di data atau gambar; kalau ragu, tulis secara umum. " + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "");
+    var dasar = "Kamu penulis konten afiliasi berbahasa Indonesia. Prinsip: soft-selling. GAYA BAHASA (penting): tulis seperti chat WhatsApp ke teman dekat, bukan seperti artikel atau iklan. Pembaca malas baca, jadi SINGKAT: satu ide per versi, kalimat pendek (maksimal 12 kata per kalimat), tanpa basa-basi pembuka dan tanpa penjelasan panjang. Pakai bahasa sehari-hari orang Indonesia: 'nggak', 'banget', 'aja', 'kok', 'deh', 'nih', 'sih', 'lho' secukupnya, dengan sapaan 'kamu' (ikuti catatan gaya pemilik akun jika ada). Hindari kata baku seperti 'merupakan', 'sehingga', 'dapat', 'memiliki', 'tersebut', 'terdapat', 'namun', 'oleh karena itu', 'berbagai', 'menjadikan'. Pilih satu fakta pengetahuan yang paling menarik, jangan semuanya. Buka dengan pertanyaan atau kejadian sehari-hari, bukan definisi. Emoji maksimal 1 sampai 2, hanya kalau natural. Contoh kaku: 'Kain linen merupakan bahan alami yang memiliki sirkulasi udara baik sehingga nyaman dipakai seharian.' Contoh yang benar: 'Pakai kemeja seharian tapi nggak gerah? Biasanya itu linen. Seratnya memang adem banget.' Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'murah', 'buruan', 'checkout sekarang'. Isi utama adalah pengetahuan yang benar-benar berguna tentang jenis bahan, cara kerja, cara memilih, atau cara merawat barang tersebut. Produk disebut lembut di akhir sebagai contoh, bukan sebagai ajakan beli. Jangan mengarang spesifikasi yang tidak ada di data atau gambar; kalau ragu, tulis secara umum. " + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "");
     if(tab === "narasi"){
       var p = $("platform").value;
-      var minta = p==="fb" ? "2 versi postingan Facebook (4-6 kalimat, boleh 1 paragraf pembuka yang menarik)" :
-                  p==="wa" ? "3 versi story WhatsApp (maksimal 2-3 kalimat pendek, mudah dibaca sekilas)" :
-                  "2 versi postingan Facebook (4-6 kalimat) dan 3 versi story WhatsApp (maksimal 2-3 kalimat pendek)";
+      var minta = p==="fb" ? "2 versi postingan Facebook, masing-masing maksimal 3 kalimat pendek dan di bawah 45 kata" :
+                  p==="wa" ? "3 versi story WhatsApp, masing-masing 1 sampai 2 baris dan di bawah 18 kata" :
+                  "2 versi postingan Facebook (maksimal 3 kalimat pendek, di bawah 45 kata) dan 3 versi story WhatsApp (1 sampai 2 baris, di bawah 18 kata)";
+      var n = images.length, gbr = n ? " Lalu buat " + n + " teks untuk ditempel di gambar, urut sesuai gambar yang dilampirkan: 'judul' maksimal 6 kata yang bikin orang berhenti scroll, dan 'sub' maksimal 8 kata (boleh kosong)." : "";
       return dasar + "\nGaya bahasa: " + $("gaya").value + ".\n\n" + info +
-        "\n\nBuat " + minta + ". Setiap versi mengambil sudut pengetahuan yang berbeda. Akhiri dengan satu baris saran hashtag (maks. 5) di item terpisah berlabel 'Hashtag'.\n" +
-        'Balas HANYA JSON valid: {"hasil":[{"label":"Facebook 1","teks":"..."}]}';
+        "\n\nBuat " + minta + ". Setiap versi memakai satu fakta pengetahuan yang berbeda. Akhiri dengan satu item berlabel 'Hashtag' berisi maksimal 5 hashtag." + gbr + "\n" +
+        (n ? 'Balas HANYA JSON valid: {"hasil":[{"label":"Facebook 1","teks":"..."}],"gambar":[{"judul":"...","sub":"..."}]}' : 'Balas HANYA JSON valid: {"hasil":[{"label":"Facebook 1","teks":"..."}]}');
     }
     return dasar + "\nTarget: video TikTok Shop berdurasi " + $("durasi").value + ", gaya " + $("gayaVideo").value + ".\n\n" + info +
       "\n\nBuat item-item berikut dalam urutan ini: " +
@@ -335,7 +403,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   }
 
   $("go").onclick = async function(){
-    var T = tab; runTab = T;
+    var T = tab; runTab = T; var imgs = images.slice(0,4);
     var key = store.get("gk");
     if(!key){showError("Aplikasi belum disiapkan di perangkat ini. Buka tab Pengaturan untuk memasukkan key, atau buka link setup dari Dako."); return}
     if(T!=="riset" && !$("jenis").value.trim()){showError("Isi jenis barang dulu."); return}
@@ -397,7 +465,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       if(T==="riset"){ if(!txt) throw new Error("Jawaban kosong. Coba lagi."); renderRiset(txt, j); note(); return; }
       var data;
       try{data = JSON.parse(txt.replace(/^```json|```$/g,"").trim())}catch(e){data = null}
-      if(data && Array.isArray(data.hasil)) showCards(data.hasil);
+      if(data && Array.isArray(data.hasil)){ showCards(data.hasil); if(T==="narasi" && Array.isArray(data.gambar) && imgs.length) renderGambar(data.gambar, imgs); }
       else if(txt) showCards([{label:"Hasil", teks:txt}]);
       else throw new Error("Jawaban kosong. Coba lagi atau ganti gambar.");
       note();
