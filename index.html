@@ -55,6 +55,10 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .err{color:var(--warn);background:var(--soft);border-radius:14px;padding:12px 14px;margin-bottom:14px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .hide{display:none}
+a.btn{display:inline-block;text-align:center;text-decoration:none}
+details.flowbox{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--bg)}
+details.flowbox summary{cursor:pointer;font-weight:600;font-size:14px}
+details.flowbox textarea{margin-top:8px;font-size:13px}
 .acts{display:flex;gap:6px;flex-shrink:0}
 .src a{display:block;color:var(--accent);font-size:14px;margin:4px 0;word-break:break-word}
 .install{display:inline-block;margin:0 0 18px;font:inherit;font-weight:600;font-size:14px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:999px;padding:7px 16px;cursor:pointer}
@@ -93,6 +97,16 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <label class="drop" tabindex="0" for="gambar" id="dropLabel">Pilih gambar dari galeri</label>
       <input id="gambar" type="file" accept="image/*" multiple class="hide">
       <div class="thumbs" id="thumbs"></div>
+      <details class="flowbox">
+        <summary>Foto berantakan? Rapikan dulu di Google Flow</summary>
+        <p class="hint" style="margin-top:8px">1. Buka Flow, masuk dengan akun Google. 2. Unggah fotonya dan pilih edit gambar. 3. Tempel perintah di bawah. 4. Unduh hasilnya, lalu unggah ke sini sebagai gambar produk.</p>
+        <textarea id="flowPrompt" readonly rows="8" aria-label="Perintah edit foto untuk Flow"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button type="button" class="btn ghost" id="flowCopy">Salin perintah</button>
+          <a class="btn ghost" href="https://labs.google/fx/tools/flow" target="_blank" rel="noopener noreferrer">Buka Flow</a>
+        </div>
+        <p class="hint">Setelah jadi, bandingkan dengan foto asli. Bentuk, warna, dan logo produk harus tetap sama.</p>
+      </details>
       </div>
       <div id="opsiNarasi">
         <label for="gaya">Gaya bahasa</label>
@@ -112,7 +126,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <div id="opsiVideo" class="hide">
         <div class="row">
           <div><label for="durasi">Durasi</label>
-            <select id="durasi"><option>15 detik</option><option selected>30 detik</option><option>45 detik</option><option>60 detik</option></select></div>
+            <select id="durasi"><option value="8 detik" selected>8 detik, 1 klip untuk Flow</option><option>15 detik</option><option>30 detik</option><option>45 detik</option><option>60 detik</option></select></div>
           <div><label for="gayaVideo">Gaya</label>
             <select id="gayaVideo"><option>Estetik dan tenang</option><option>Cerita sehari-hari</option><option>Edukasi singkat</option><option>Sebelum dan sesudah</option></select></div>
         </div>
@@ -444,6 +458,28 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     lay.onchange = sel.onchange = function(){ draws.forEach(function(d){d()}) };
     out().appendChild(wrap);
   }
+  function updateFlowPrompt(){
+    var j = $("jenis").value.trim() || "product";
+    $("flowPrompt").value = "Edit this photo. It shows a product: " + j + ". Keep the product exactly the same: shape, color, material texture, logo, proportions and every detail. Do not redesign, recolor or add anything to the product. Remove everything that is not the product: phone status bar, app buttons, screenshot interface, text, stickers, price tags, watermarks, hands and background clutter. Place the product centered on a clean, seamless soft-pink and white studio background with gentle natural light and a subtle soft shadow. Sharp, neat, professional product photo, vertical 4:5, no text, no watermark.";
+  }
+  $("jenis").addEventListener("input", updateFlowPrompt); updateFlowPrompt();
+  $("flowCopy").onclick = function(){
+    var b = $("flowCopy"), done = function(){b.textContent = "Tersalin"; setTimeout(function(){b.textContent = "Salin perintah"}, 1200)};
+    if(navigator.clipboard) navigator.clipboard.writeText($("flowPrompt").value).then(done, function(){});
+  };
+  function flowGuide(){
+    var c = document.createElement("article"); c.className = "card";
+    var h = document.createElement("h3"); h.textContent = "Cara membuat videonya di Flow"; h.style.marginBottom = "8px"; c.appendChild(h);
+    var p = document.createElement("p");
+    p.textContent = "1. Buka Google Flow dan masuk dengan akun Google.\n2. Buat proyek baru, pilih Frames to Video, lalu unggah foto produk yang sudah rapi sebagai bingkai awal.\n3. Tempel perintah dari kartu Perintah Flow (atau Prompt video scene). Pilih Veo 3.1 Lite (10 kredit, hemat) atau Fast (20 kredit), durasi 8 detik, rasio 9:16.\n4. Tekan Generate, tunggu, lalu unduh videonya.\n5. Buka TikTok, tempel teks di layar dan voice over dari kartu di bawah, lalu pakai caption-nya.";
+    c.appendChild(p);
+    var n = document.createElement("p"); n.className = "hint"; n.style.marginTop = "10px";
+    n.textContent = "Jatah gratis 50 kredit per hari, cukup untuk sekitar 5 klip Lite atau 2 klip Fast. Nama menu bisa sedikit berbeda. Cek hasilnya: produk di video harus tetap sama dengan aslinya.";
+    c.appendChild(n);
+    var a = document.createElement("a"); a.className = "btn ghost"; a.href = "https://labs.google/fx/tools/flow"; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = "Buka Flow"; a.style.marginTop = "10px";
+    c.appendChild(a);
+    return c;
+  }
   function buildRiset(){
     var tgl = new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
     var bidang = $("bidang").value.trim();
@@ -492,6 +528,13 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         "\n\nBuat " + minta + ". Setiap versi memakai satu fakta pengetahuan yang berbeda. Akhiri dengan satu item berlabel 'Hashtag' berisi maksimal 5 hashtag." + gbr + "\n" +
         (n ? 'Balas HANYA JSON valid: {"hasil":[{"label":"Facebook 1","teks":"..."}],"gambar":[{"judul":"...","sub":"..."}]}' : 'Balas HANYA JSON valid: {"hasil":[{"label":"Facebook 1","teks":"..."}]}');
     }
+    if($("durasi").value==="8 detik") return dasar + "\nTarget: SATU klip video TikTok Shop berdurasi 8 detik, rasio 9:16, dibuat di Google Flow (Veo) dengan foto produk sebagai frame awal. Gaya: " + $("gayaVideo").value + ".\n\n" + info +
+      "\n\nBuat item berikut, urut:\n" +
+      "(1) label 'Perintah Flow (tempel langsung)': satu prompt bahasa Inggris 60 sampai 90 kata. Wajib memuat: produk tetap persis sama seperti di foto (bentuk, warna, logo, tekstur); hanya satu gerak kamera yang pelan, misalnya slow push-in atau gentle orbit; cahaya lembut dan suasana sesuai gaya; gerakan sederhana supaya bentuk produk tidak berubah; tanpa teks di layar, tanpa logo atau watermark tambahan.\n" +
+      "(2) label 'Teks di layar': 2 sampai 3 teks pendek (maksimal 6 kata) beserta detik munculnya, untuk ditempel di editor TikTok.\n" +
+      "(3) label 'Voice over 8 detik': maksimal 20 kata, bahasa santai.\n" +
+      "(4) label 'Caption dan hashtag': caption maksimal 2 kalimat pendek dan 5 hashtag.\n" +
+      'Balas HANYA JSON valid: {"hasil":[{"label":"...","teks":"..."}]}';
     return dasar + "\nTarget: video TikTok Shop berdurasi " + $("durasi").value + ", gaya " + $("gayaVideo").value + ".\n\n" + info +
       "\n\nBuat item-item berikut dalam urutan ini: " +
       "(1) label 'Ide cerita': 3 ide premis singkat, " +
@@ -566,7 +609,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       if(T==="riset"){ if(!txt) throw new Error("Jawaban kosong. Coba lagi."); renderRiset(txt, j); note(); return; }
       var data;
       try{data = JSON.parse(txt.replace(/^```json|```$/g,"").trim())}catch(e){data = null}
-      if(data && Array.isArray(data.hasil)){ showCards(data.hasil); if(T==="narasi" && Array.isArray(data.gambar) && imgs.length) renderGambar(data.gambar, imgs); }
+      if(data && Array.isArray(data.hasil)){ showCards(data.hasil); if(T==="video") out().insertBefore(flowGuide(), out().firstChild); if(T==="narasi" && Array.isArray(data.gambar) && imgs.length) renderGambar(data.gambar, imgs); }
       else if(txt) showCards([{label:"Hasil", teks:txt}]);
       else throw new Error("Jawaban kosong. Coba lagi atau ganti gambar.");
       note();
