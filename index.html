@@ -285,62 +285,163 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     if(cur) lines.push(cur);
     return lines;
   }
-  function drawOverlay(cv, img, judul, sub, ratio){
+  function rr(ctx,x,y,w,h,r){
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+  function analyze(im){
+    var w = im.naturalWidth, h = im.naturalHeight, full = {r:{sx:0,sy:0,sw:w,sh:h}, fx:null, fy:null};
+    var sc = Math.min(1, 320/Math.max(w,h));
+    var c = document.createElement("canvas"); c.width = Math.max(1,Math.round(w*sc)); c.height = Math.max(1,Math.round(h*sc));
+    var W = c.width, H = c.height, d;
+    try{ var x = c.getContext("2d"); x.drawImage(im,0,0,W,H); d = x.getImageData(0,0,W,H).data }catch(e){ return full }
+    function uni(i,row){
+      var mn=[255,255,255], mx=[0,0,0], n = row ? W : H;
+      for(var k=0;k<n;k+=2){
+        var p = row ? (i*W+k)*4 : (k*W+i)*4;
+        for(var q=0;q<3;q++){var v=d[p+q]; if(v<mn[q]) mn[q]=v; if(v>mx[q]) mx[q]=v}
+      }
+      return (mx[0]-mn[0])<=24 && (mx[1]-mn[1])<=24 && (mx[2]-mn[2])<=24;
+    }
+    var t=0,bo=0,l=0,r=0, mt=Math.floor(H*0.3), ml=Math.floor(W*0.3);
+    while(t<mt && uni(t,true)) t++;
+    while(bo<mt && uni(H-1-bo,true)) bo++;
+    while(l<ml && uni(l,false)) l++;
+    while(r<ml && uni(W-1-r,false)) r++;
+    var rw=W-l-r, rh=H-t-bo, cs=Math.max(6, Math.round(Math.min(rw,rh)/8));
+    var gx=Math.max(1,Math.ceil(rw/cs)), gy=Math.max(1,Math.ceil(rh/cs)), n=gx*gy;
+    var cW=new Array(n).fill(0), cX=new Array(n).fill(0), cY=new Array(n).fill(0), tw=0, cnt=0;
+    for(var yy=t; yy<H-bo; yy+=2) for(var xx=l; xx<W-r; xx+=2){
+      var p2=(yy*W+xx)*4, sat=Math.max(d[p2],d[p2+1],d[p2+2]) - Math.min(d[p2],d[p2+1],d[p2+2]), wt=sat;
+      var ix=Math.floor((yy-t)/cs)*gx + Math.floor((xx-l)/cs);
+      cW[ix]+=wt; cX[ix]+=wt*xx; cY[ix]+=wt*yy; tw+=wt; cnt++;
+    }
+    var fx=null, fy=null;
+    if(cnt && tw/cnt > 12){
+      var best=-1, bx=0, by=0;
+      for(var j0=0; j0<=Math.max(0,gy-4); j0++) for(var i0=0; i0<=Math.max(0,gx-4); i0++){
+        var ws=0, xs=0, ys=0;
+        for(var j=j0; j<Math.min(j0+4,gy); j++) for(var i=i0; i<Math.min(i0+4,gx); i++){var q2=j*gx+i; ws+=cW[q2]; xs+=cX[q2]; ys+=cY[q2]}
+        if(ws>best){best=ws; bx=xs; by=ys}
+      }
+      if(best>0){fx = bx/best/sc; fy = by/best/sc}
+    }
+    var pl=l/sc, pt=t/sc, pr=r/sc, pb=bo/sc, pad=0.04*Math.max(w-pl-pr, h-pt-pb);
+    var sx=pl-Math.min(pad,0.25*pl), sy=pt-Math.min(pad,0.25*pt), ex=w-pr+Math.min(pad,0.25*pr), ey=h-pb+Math.min(pad,0.25*pb);
+    return {r:{sx:sx, sy:sy, sw:Math.max(1,ex-sx), sh:Math.max(1,ey-sy)}, fx:fx, fy:fy};
+  }
+  function paintPhoto(ctx, im, b, x, y, w, h, st, rad){
+    ctx.save(); rr(ctx,x,y,w,h,rad); ctx.clip();
+    var s, dw, dh;
+    if(st.fit==="contain"){
+      var t = document.createElement("canvas"); t.width = 24; t.height = Math.max(1,Math.round(24*h/w));
+      t.getContext("2d").drawImage(im,b.sx,b.sy,b.sw,b.sh,0,0,t.width,t.height);
+      ctx.drawImage(t,x,y,w,h); ctx.fillStyle = "rgba(255,255,255,0.28)"; ctx.fillRect(x,y,w,h);
+      s = Math.min(w/b.sw, h/b.sh)*st.zoom;
+    } else {
+      s = Math.max(w/b.sw, h/b.sh)*st.zoom;
+    }
+    dw = b.sw*s; dh = b.sh*s;
+    var px = st.px, py = st.py;
+    if(st.auto && st.fit!=="contain" && st.fx!=null){
+      var rx = Math.min(1,Math.max(0,(st.fx-b.sx)/b.sw)), ry = Math.min(1,Math.max(0,(st.fy-b.sy)/b.sh));
+      if(Math.abs(w-dw)>1) px = Math.min(1,Math.max(0,(w/2-rx*dw)/(w-dw)));
+      if(Math.abs(h-dh)>1) py = Math.min(1,Math.max(0,(h/2-ry*dh)/(h-dh)));
+    }
+    ctx.drawImage(im,b.sx,b.sy,b.sw,b.sh, x+(w-dw)*px, y+(h-dh)*py, dw, dh);
+    ctx.restore();
+  }
+  function drawOverlay(cv, im, judul, sub, ratio, layout, st, base){
     var W = 1080, H = ratio==="story" ? 1920 : 1350;
     cv.width = W; cv.height = H;
-    var ctx = cv.getContext("2d");
-    var sc = Math.max(W/img.width, H/img.height), dw = img.width*sc, dh = img.height*sc;
-    ctx.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);
-    var g = ctx.createLinearGradient(0, H*0.45, 0, H);
-    g.addColorStop(0, "rgba(90,20,50,0)"); g.addColorStop(1, "rgba(90,20,50,0.82)");
-    ctx.fillStyle = g; ctx.fillRect(0, H*0.45, W, H*0.55);
-    var x = 72, maxW = W - 144, y = H - (ratio==="story" ? 340 : 110);
-    ctx.fillStyle = "#fff"; ctx.textBaseline = "alphabetic"; ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 12;
+    var ctx = cv.getContext("2d"), b = {sx:base.sx, sy:base.sy, sw:base.sw, sh:base.sh};
+    if(st.bars){var t1 = b.sh*0.09, t2 = b.sh*0.07; b.sy += t1; b.sh -= t1+t2}
+    ctx.textBaseline = "alphabetic";
+    if(layout==="kartu"){
+      var g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"#FFF1F5"); g.addColorStop(1,"#FFD9E6");
+      ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+      var m = 56, cw = W-2*m, ch = Math.round(Math.min(H*(ratio==="story"?0.6:0.62), Math.max(H*0.42, (cw-28)*(b.sh/b.sw)+28)));
+      ctx.save(); ctx.shadowColor = "rgba(184,71,107,0.28)"; ctx.shadowBlur = 44; ctx.shadowOffsetY = 16; ctx.fillStyle = "#fff"; rr(ctx,m,m,cw,ch,44); ctx.fill(); ctx.restore();
+      paintPhoto(ctx, im, b, m+14, m+14, cw-28, ch-28, st, 32);
+      var x = m+18, maxW = W-2*m-36, y = m+ch+72;
+      ctx.fillStyle = "#E0709A"; rr(ctx,x,y-30,84,10,5); ctx.fill();
+      y += 40;
+      ctx.font = "600 76px Fredoka, Nunito, sans-serif"; ctx.fillStyle = "#3D2B33";
+      wrapText(ctx, judul, maxW).forEach(function(ln){ctx.fillText(ln, x, y+62); y += 92});
+      y += 8; ctx.font = "500 40px Nunito, sans-serif"; ctx.fillStyle = "#8C6E78";
+      if(sub) wrapText(ctx, sub, maxW).forEach(function(ln){ctx.fillText(ln, x, y+40); y += 54});
+      return;
+    }
+    paintPhoto(ctx, im, b, 0, 0, W, H, st, 0);
+    var g2 = ctx.createLinearGradient(0, H*0.45, 0, H);
+    g2.addColorStop(0, "rgba(90,20,50,0)"); g2.addColorStop(1, "rgba(90,20,50,0.82)");
+    ctx.fillStyle = g2; ctx.fillRect(0, H*0.45, W, H*0.55);
+    var x2 = 72, maxW2 = W-144, y2 = H - (ratio==="story" ? 340 : 110);
+    ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 12;
     ctx.font = "500 40px Nunito, sans-serif";
-    var sl = sub ? wrapText(ctx, sub, maxW) : [];
-    for(var i=sl.length-1; i>=0; i--){ctx.fillText(sl[i], x, y); y -= 54}
-    if(sl.length) y -= 14;
+    var sl = sub ? wrapText(ctx, sub, maxW2) : [];
+    for(var i=sl.length-1; i>=0; i--){ctx.fillText(sl[i], x2, y2); y2 -= 54}
+    if(sl.length) y2 -= 14;
     ctx.font = "600 78px Fredoka, Nunito, sans-serif";
-    var jl = wrapText(ctx, judul, maxW);
-    for(var k=jl.length-1; k>=0; k--){ctx.fillText(jl[k], x, y); y -= 92}
+    var jl = wrapText(ctx, judul, maxW2);
+    for(var k=jl.length-1; k>=0; k--){ctx.fillText(jl[k], x2, y2); y2 -= 92}
   }
   function renderGambar(items, imgs){
     var wrap = document.createElement("article"); wrap.className = "card";
-    var top = document.createElement("div"); top.className = "top";
+    var top = document.createElement("div"); top.className = "top"; top.style.flexWrap = "wrap";
     var h = document.createElement("h3"); h.textContent = "Gambar bertulis";
+    var ctrls = document.createElement("div"); ctrls.style.cssText = "display:flex;gap:6px;flex-wrap:wrap";
+    var lay = document.createElement("select"); lay.style.width = "auto"; lay.setAttribute("aria-label","Tata letak");
+    lay.innerHTML = '<option value="kartu">Kartu rapi</option><option value="penuh">Foto penuh</option>';
     var sel = document.createElement("select"); sel.style.width = "auto"; sel.setAttribute("aria-label","Ukuran gambar");
     sel.innerHTML = '<option value="post">Postingan 4:5</option><option value="story">Story 9:16</option>';
-    top.appendChild(h); top.appendChild(sel); wrap.appendChild(top);
-    var hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Teks bisa diubah. Setelah pas, unduh atau bagikan langsung ke WhatsApp."; wrap.appendChild(hint);
+    ctrls.appendChild(lay); ctrls.appendChild(sel); top.appendChild(h); top.appendChild(ctrls); wrap.appendChild(top);
+    var hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Kartu rapi menyembunyikan pinggiran foto yang berantakan. Buka Atur foto untuk memotong atau menggeser. Teks juga bisa diubah."; wrap.appendChild(hint);
     var draws = [];
     var ready = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load("600 78px Fredoka"), document.fonts.load("500 40px Nunito")]).catch(function(){}) : Promise.resolve();
     imgs.forEach(function(src, i){
-      var it = items[i] || {};
-      var box = document.createElement("div"); box.style.margin = "16px 0";
+      var it = items[i] || {}, st = {fit:"cover", zoom:1, px:0.5, py:0.5, trim:true, bars:false, auto:true, fx:null, fy:null}, analysis = null;
+      var box = document.createElement("div"); box.style.margin = "18px 0";
       var cv = document.createElement("canvas"); cv.style.cssText = "width:100%;max-width:340px;height:auto;border-radius:14px;display:block;margin-bottom:8px";
       var j = document.createElement("input"); j.value = it.judul || ""; j.setAttribute("aria-label","Judul gambar " + (i+1));
       var sb = document.createElement("input"); sb.value = it.sub || ""; sb.setAttribute("aria-label","Teks kecil gambar " + (i+1)); sb.style.marginTop = "6px";
-      var row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;margin-top:8px";
+      var im = new Image();
+      var draw = function(){
+        if(!im.naturalWidth) return;
+        var an = analysis || (analysis = analyze(im)); st.fx = an.fx; st.fy = an.fy;
+        var base = st.trim ? an.r : {sx:0, sy:0, sw:im.naturalWidth, sh:im.naturalHeight};
+        drawOverlay(cv, im, j.value, sb.value, sel.value, lay.value, st, base);
+      };
+      var det = document.createElement("details"); det.style.marginTop = "10px";
+      var sm = document.createElement("summary"); sm.textContent = "Atur foto"; sm.style.cursor = "pointer"; det.appendChild(sm);
+      var ctl = function(text, el){var l = document.createElement("label"); l.textContent = text; l.style.cssText = "font-size:13px;margin:10px 0 3px"; det.appendChild(l); det.appendChild(el)};
+      var fit = document.createElement("select"); fit.innerHTML = '<option value="cover">Isi penuh (dipotong rapi)</option><option value="contain">Utuh (latar blur)</option>';
+      fit.onchange = function(){st.fit = fit.value; draw()}; ctl("Tampilan foto", fit);
+      var range = function(text, min, max, val, cb){var e = document.createElement("input"); e.type = "range"; e.min = min; e.max = max; e.value = val; e.style.padding = "0"; e.oninput = function(){cb(+e.value); draw()}; ctl(text, e)};
+      range("Zoom", 100, 300, 100, function(v){st.zoom = v/100});
+      range("Geser kiri-kanan", 0, 100, 50, function(v){st.px = v/100; st.auto = false});
+      range("Geser atas-bawah", 0, 100, 50, function(v){st.py = v/100; st.auto = false});
+      var check = function(text, val, cb){var l = document.createElement("label"); l.style.cssText = "display:flex;gap:8px;align-items:center;font-size:13px;font-weight:400;margin:10px 0 0"; var e = document.createElement("input"); e.type = "checkbox"; e.checked = val; e.style.width = "auto"; e.onchange = function(){cb(e.checked); draw()}; l.appendChild(e); l.appendChild(document.createTextNode(text)); det.appendChild(l)};
+      check("Rapikan pinggiran polos otomatis", true, function(v){st.trim = v});
+      check("Buang bar atas dan bawah (screenshot HP)", false, function(v){st.bars = v});
+      var row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;margin-top:12px";
       var dl = document.createElement("button"); dl.type = "button"; dl.className = "btn ghost"; dl.textContent = "Unduh";
       var sh = document.createElement("button"); sh.type = "button"; sh.className = "btn ghost"; sh.textContent = "Bagikan";
-      var im = new Image();
-      var draw = function(){ if(im.naturalWidth) drawOverlay(cv, im, j.value, sb.value, sel.value) };
       im.onload = function(){ ready.then(draw) }; im.src = src;
       j.oninput = draw; sb.oninput = draw; draws.push(draw);
       var nama = "asritools-" + (i+1) + ".png";
-      dl.onclick = function(){ cv.toBlob(function(b){
-        var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+      dl.onclick = function(){ cv.toBlob(function(bl){
+        var a = document.createElement("a"); a.href = URL.createObjectURL(bl); a.download = nama; document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function(){URL.revokeObjectURL(a.href)}, 3000);
       }, "image/png") };
-      sh.onclick = function(){ cv.toBlob(function(b){
-        var f = new File([b], nama, {type:"image/png"});
+      sh.onclick = function(){ cv.toBlob(function(bl){
+        var f = new File([bl], nama, {type:"image/png"});
         if(navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f]}).catch(function(){});
         else dl.click();
       }, "image/png") };
       row.appendChild(dl); row.appendChild(sh);
-      box.appendChild(cv); box.appendChild(j); box.appendChild(sb); box.appendChild(row); wrap.appendChild(box);
+      box.appendChild(cv); box.appendChild(j); box.appendChild(sb); box.appendChild(det); box.appendChild(row); wrap.appendChild(box);
     });
-    sel.onchange = function(){ draws.forEach(function(d){d()}) };
+    lay.onchange = sel.onchange = function(){ draws.forEach(function(d){d()}) };
     out().appendChild(wrap);
   }
   function buildRiset(){
