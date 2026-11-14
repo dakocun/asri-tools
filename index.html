@@ -105,7 +105,8 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
           <button type="button" class="btn ghost" id="flowCopy">Salin perintah</button>
           <a class="btn ghost" href="https://labs.google/fx/tools/flow" target="_blank" rel="noopener noreferrer">Buka Flow</a>
         </div>
-        <p class="hint">Setelah jadi, bandingkan dengan foto asli. Bentuk, warna, dan logo produk harus tetap sama.</p>
+        <p class="hint">Setelah jadi, bandingkan dengan foto asli. Bentuk, warna, dan logo produk harus tetap sama. Kalau Flow menanyakan rasio gambar, pilih 3:4.</p>
+        <p class="hint">Kalau Flow menjawab Failed atau melanggar kebijakan, kemungkinan fotonya ada wajah orang. Potong dulu bagian wajah, pakai foto produk tanpa orang, atau lewati langkah ini dan rapikan lewat Atur foto di bawah hasil Gambar bertulis.</p>
       </details>
       </div>
       <div id="opsiNarasi">
@@ -460,7 +461,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   }
   function updateFlowPrompt(){
     var j = $("jenis").value.trim() || "product";
-    $("flowPrompt").value = "Edit this photo. It shows a product: " + j + ". Keep the product exactly the same: shape, color, material texture, logo, proportions and every detail. Do not redesign, recolor or add anything to the product. Remove everything that is not the product: phone status bar, app buttons, screenshot interface, text, stickers, price tags, watermarks, hands and background clutter. Place the product centered on a clean, seamless soft-pink and white studio background with gentle natural light and a subtle soft shadow. Sharp, neat, professional product photo, vertical 4:5, no text, no watermark.";
+    $("flowPrompt").value = "Edit this photo. It shows a product: " + j + ". Keep the product exactly the same: shape, color, material texture, logo, proportions and every detail. Do not redesign, recolor or add anything to the product. Remove everything that is not the product: phone status bar, app buttons, screenshot interface, text, stickers, price tags, watermarks and background clutter. Place the product centered on a clean, seamless soft-pink and white studio background with gentle natural light and a subtle soft shadow. Sharp, neat, professional product photo, vertical 3:4 aspect ratio, no text, no watermark.";
   }
   $("jenis").addEventListener("input", updateFlowPrompt); updateFlowPrompt();
   $("flowCopy").onclick = function(){
