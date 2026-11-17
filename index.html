@@ -549,48 +549,63 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   async function callGemini(parts, riset, btn){
     var key = store.get("gk");
     var chosen = store.get("gm") || "gemini-3.8-flash";
-    var tryList = [chosen,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash"].filter(function(m,i,a){return a.indexOf(m)===i});
+    var tryList = [chosen,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite","gemini-3.1-flash-lite"].filter(function(m,i,a){return a.indexOf(m)===i});
     var modes = riset ? [true,false] : [false];
-    var r = null, j = {}, usedModel = "", usedSearch = false, lastMsg = "";
-    outer:
-    for(var si=0; si<modes.length; si++){
-      for(var mi=0; mi<tryList.length; mi++){
-        var model = tryList[mi], isG3 = /gemini-3/.test(model);
-        var gen = riset ? {} : {responseMimeType:"application/json"};
-        if(!isG3) gen.temperature = riset ? 0.5 : 0.9;
-        else if(!riset) gen.thinkingConfig = {thinkingLevel:"low"};
-        var ps = parts;
-        if(riset && !modes[si]) ps = [{text: parts[0].text + "\n\n(Catatan: pencarian web tidak tersedia kali ini. Jangan mengaku punya data terbaru. Tulis sebagai dugaan dari pola musiman dan pengetahuan umum, dan beri keyakinan rendah.)"}];
-        var payload = {contents:[{role:"user",parts:ps}], generationConfig:gen};
-        if(modes[si]) payload.tools = [{google_search:{}}];
-        for(var at=0; at<3; at++){
-          r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
-            method:"POST",
-            headers:{"Content-Type":"application/json","x-goog-api-key":key},
-            body: JSON.stringify(payload)
-          });
-          try{ j = await r.json() }catch(e){ j = {} }
-          if(r.ok) break;
-          lastMsg = (j.error && j.error.message) || ("Kode " + r.status);
-          if(r.status>=500 && at<2){
-            btn.textContent = "Server sedang ramai, mencoba lagi...";
-            await new Promise(function(res){setTimeout(res, 1500*(at+1))});
-            continue;
-          }
-          break;
-        }
-        if(r.ok){ usedModel = model; usedSearch = modes[si]; break outer; }
-        if(r.status!==429 && r.status!==404 && r.status<500) break outer;
-      }
+    var st = {r:null, j:{}, usedModel:"", usedSearch:false, lastMsg:""};
+    var pause = function(ms){return new Promise(function(res){setTimeout(res, ms)})};
+    async function send(model, payload){
+      var ctl = new AbortController(), tm = setTimeout(function(){ctl.abort()}, 60000);
+      try{
+        var r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
+          method:"POST",
+          headers:{"Content-Type":"application/json","x-goog-api-key":key},
+          body: JSON.stringify(payload),
+          signal: ctl.signal
+        });
+        var j = {}; try{ j = await r.json() }catch(e){}
+        return {r:r, j:j};
+      }catch(e){
+        return {r:{ok:false,status:504}, j:{error:{message:"Waktu tunggu habis"}}};
+      }finally{ clearTimeout(tm) }
     }
+    async function once(){
+      for(var si=0; si<modes.length; si++){
+        for(var mi=0; mi<tryList.length; mi++){
+          var model = tryList[mi], isG3 = /gemini-3/.test(model);
+          var gen = riset ? {} : {responseMimeType:"application/json"};
+          if(!isG3) gen.temperature = riset ? 0.5 : 0.9;
+          else if(!riset) gen.thinkingConfig = {thinkingLevel:"low"};
+          var ps = parts;
+          if(riset && !modes[si]) ps = [{text: parts[0].text + "\n\n(Catatan: pencarian web tidak tersedia kali ini. Jangan mengaku punya data terbaru. Tulis sebagai dugaan dari pola musiman dan pengetahuan umum, dan beri keyakinan rendah.)"}];
+          var payload = {contents:[{role:"user",parts:ps}], generationConfig:gen};
+          if(modes[si]) payload.tools = [{google_search:{}}];
+          for(var at=0; at<2; at++){
+            var o = await send(model, payload); st.r = o.r; st.j = o.j;
+            if(o.r.ok){ st.usedModel = model; st.usedSearch = modes[si]; return true }
+            st.lastMsg = (o.j.error && o.j.error.message) || ("Kode " + o.r.status);
+            if(o.r.status===400 && payload.generationConfig.thinkingConfig){ delete payload.generationConfig.thinkingConfig; continue }
+            if(o.r.status>=500 && at<1){ await pause(2000); continue }
+            break;
+          }
+          if(st.r.status!==429 && st.r.status!==404 && st.r.status<500) return false;
+        }
+      }
+      return false;
+    }
+    for(var pass=0; pass<3; pass++){
+      if(await once()) break;
+      if(st.r.status<500) break;
+      if(pass<2){ btn.textContent = "Server Google ramai, mencoba lagi (" + (pass+2) + "/3)..."; await pause(7000); }
+    }
+    var r = st.r;
     if(!r.ok){
-      var m = lastMsg;
-      if(r.status===429) m = "Kuota habis untuk model yang dicoba (" + tryList.join(", ") + "). Pesan dari Google: " + lastMsg.slice(0,280);
+      var m = st.lastMsg;
+      if(r.status===429) m = "Kuota habis untuk model yang dicoba (" + tryList.join(", ") + "). Pesan dari Google: " + st.lastMsg.slice(0,280);
       else if(r.status===404 || /no longer available/i.test(m)) m = "Model tidak tersedia untuk akun ini. Buka Pengaturan, lalu ganti Model dengan gemini-3.8-flash atau gemini-3.7-flash.";
-      if(r.status>=500) m = "Server Google sedang sibuk. Ini sementara, coba lagi beberapa menit lagi. Pesan dari Google: " + lastMsg.slice(0,200);
+      if(r.status>=500) m = "Server Google masih sibuk walau sudah dicoba dengan beberapa model. Tunggu beberapa menit lalu tekan tombol lagi. Pesan dari Google: " + st.lastMsg.slice(0,160);
       throw new Error(m);
     }
-    return {j:j, usedModel:usedModel, usedSearch:usedSearch, chosen:chosen};
+    return {j:st.j, usedModel:st.usedModel, usedSearch:st.usedSearch, chosen:chosen};
   }
 
   function note(res){
