@@ -55,6 +55,13 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .err{color:var(--warn);background:var(--soft);border-radius:14px;padding:12px 14px;margin-bottom:14px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .hide{display:none}
+.card p{overflow-wrap:anywhere;line-height:1.6}
+.card.mini{padding:12px 16px;background:var(--soft);border-color:transparent;box-shadow:none}
+.card.mini h3{font-size:15px}
+.card.mini p{font-size:14px;color:var(--muted)}
+.seg{display:flex;gap:4px;margin:0 0 14px;background:var(--soft);padding:4px;border-radius:999px;position:sticky;top:6px;z-index:2}
+.seg button{flex:1;border:0;background:transparent;font:inherit;font-weight:600;font-size:14px;color:var(--muted);padding:9px 10px;border-radius:999px;cursor:pointer}
+.seg button[aria-selected=true]{background:var(--surface);color:var(--accent);box-shadow:0 2px 8px -4px rgba(184,71,107,.55)}
 a.btn{display:inline-block;text-align:center;text-decoration:none}
 details.flowbox{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--bg)}
 details.flowbox summary{cursor:pointer;font-weight:600;font-size:14px}
@@ -105,6 +112,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       <p class="hint">Screenshot per layar lebih terbaca daripada satu screenshot yang sangat panjang.</p>
       <label for="link">3. Link affiliate produk</label>
       <input id="link" placeholder="Tempel link di sini">
+      <p class="hint">Pakai link dari program afiliasi (biasanya pendek) supaya komisinya tercatat.</p>
       <details class="flowbox">
         <summary>Opsi lain (boleh dilewati)</summary>
         <label for="gaya">Gaya bahasa</label>
@@ -153,7 +161,9 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 (function(){
   var $ = function(id){return document.getElementById(id)};
   var tab = "buat", runTab = "buat", images = [], descs = [];
-  function out(){return $("h-" + runTab)}
+  var outOverride = null;
+  function out(){return outOverride || $("h-" + runTab)}
+  function into(el, fn){var prev = outOverride; outOverride = el; try{fn()}finally{outOverride = prev}}
   function goLabel(t){return t==="riset" ? "Cari tren" : "Buat konten"}
   var store = {
     get:function(k){try{return localStorage.getItem(k)||""}catch(e){return ""}},
@@ -259,6 +269,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       var c = document.createElement("article"); c.className = "card";
       var top = document.createElement("div"); top.className = "top";
       var h = document.createElement("h3"); h.textContent = it.label || "Hasil";
+      if(it.mini) c.className = "card mini";
       var b = document.createElement("button"); b.type = "button"; b.className = "btn ghost"; b.textContent = "Salin";
       var p = document.createElement("p"); p.textContent = it.teks || "";
       b.onclick = function(){
@@ -272,7 +283,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         acts.appendChild(u);
       }
       acts.appendChild(b);
-      top.appendChild(h); top.appendChild(acts); c.appendChild(top); c.appendChild(p); box.appendChild(c);
+      top.appendChild(h); if(!it.mini) top.appendChild(acts); c.appendChild(top); c.appendChild(p); box.appendChild(c);
     });
   }
 
@@ -469,7 +480,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     var c = document.createElement("article"); c.className = "card";
     var h = document.createElement("h3"); h.textContent = "Cara membuat videonya di Flow"; h.style.marginBottom = "8px"; c.appendChild(h);
     var p = document.createElement("p");
-    p.textContent = "1. Buka Google Flow dan masuk dengan akun Google.\n2. Buat proyek baru, pilih Frames to Video, lalu unggah bingkai awal (unduh dari kartu Storyboard) sebagai gambar awal.\n3. Tempel Perintah Flow dari kartu di atas. Pilih Veo 3.1 Lite (10 kredit, hemat) atau Fast (20 kredit), durasi 8 detik, rasio 9:16.\n4. Tekan Generate, tunggu, lalu unduh videonya.\n5. Buka TikTok atau aplikasi edit video, tempel teks di layar dari storyboard dan voice over dari kartu di atas. Saat mengunggah, tautkan produk affiliate-nya.";
+    p.textContent = "1. Buka Google Flow dan masuk dengan akun Google.\n2. Buat proyek baru, pilih Frames to Video, lalu unggah bingkai awal (unduh dari kartu Storyboard) sebagai gambar awal.\n3. Tempel Perintah Flow dari kartu di atas. Pilih Veo 3.1 Lite (10 kredit, hemat) atau Fast (20 kredit), durasi 8 detik, rasio 9:16.\n4. Tekan Generate, tunggu, lalu unduh videonya.\n5. Buka TikTok atau aplikasi edit video, tempel teks di layar dari storyboard dan voice over dari kartu di atas. Saat mengunggah, tautkan produk affiliate-nya.\n\nTanpa kredit video: buat gambar adegan dari Prompt gambar adegan di Flow (unggah foto produk sebagai acuan), lalu jadikan slideshow di TikTok atau CapCut dengan teks dari storyboard.";
     c.appendChild(p);
     var n = document.createElement("p"); n.className = "hint"; n.style.marginTop = "10px";
     n.textContent = "Jatah gratis 50 kredit per hari, cukup untuk sekitar 5 klip Lite atau 2 klip Fast. Nama menu bisa sedikit berbeda. Cek hasilnya: produk di video harus tetap sama dengan aslinya.";
@@ -512,7 +523,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 
   function buildMain(nFoto, nDesk){
     var gayaAku = store.get("gs"), cat = $("catatan").value.trim();
-    var schema = '{"produk":{"nama":"...","jenis":"...","harga":"...","info":"..."},"facebook":["...","..."],"wa":["...","...","..."],"tiktok":"...","hashtag":["#..."],"gambar":[{"judul":"...","sub":"..."}],"scenes":[{"detik":"0-2","aksi":"...","teks":"...","fokus":"utuh"}],"flow":"...","voiceover":"..."}';
+    var schema = '{"produk":{"nama":"...","jenis":"...","harga":"...","info":"..."},"facebook":["...","..."],"wa":["...","...","..."],"tiktok":"...","hashtag":["#..."],"gambar":[{"judul":"...","sub":"..."}],"ide":{"konsep":"...","hook":"..."},"scenes":[{"detik":"0-2","label":"Hook","aksi":"...","teks":"...","fokus":"utuh","prompt_gambar":"..."}],"flow":"...","voiceover":"..."}';
     return "Kamu penulis konten afiliasi berbahasa Indonesia untuk akun olshop dan sosmed. Prinsip: soft-selling. Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'buruan', 'checkout sekarang'. Jangan mengarang spesifikasi, harga, atau klaim yang tidak ada di screenshot; kalau tidak terbaca, tulis secara umum atau kosongkan. " + GAYA + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "") +
       "\n\nGambar yang dilampirkan, urut: " + nFoto + " foto produk, lalu " + nDesk + " screenshot deskripsi barang. Baca teks di screenshot deskripsi untuk mengetahui nama produk, bahan, ukuran, fitur, harga, dan info seperti COD atau gratis ongkir. Foto produk dipakai untuk memahami tampilan barangnya." +
       (cat ? "\nCatatan dari pemilik akun (utamakan ini jika berbeda dengan screenshot): " + cat : "") +
@@ -525,8 +536,9 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       "- tiktok: caption maksimal 2 kalimat pendek, tanpa hashtag dan tanpa link.\n" +
       "- hashtag: 8 hashtag, campur yang umum dan yang spesifik jenis produk, huruf kecil tanpa spasi.\n" +
       "- gambar: tepat " + nFoto + " item, urut sesuai foto produk. 'judul' maksimal 6 kata yang bikin orang berhenti scroll, 'sub' maksimal 8 kata (boleh kosong).\n" +
-      "- scenes: tepat 4 adegan untuk satu klip 8 detik dengan 'detik' berturut-turut '0-2','2-4','4-6','6-8'. 'aksi' apa yang tampak (maksimal 12 kata), 'teks' teks di layar (maksimal 6 kata), 'fokus' salah satu dari: utuh, dekat, detail.\n" +
-      "- flow: satu prompt bahasa Inggris 60 sampai 90 kata untuk Google Flow mode Frames to Video dengan foto produk sebagai frame awal. Wajib memuat: produk persis sama seperti di foto (bentuk, warna, logo, tekstur); hanya satu gerak kamera pelan; cahaya lembut; gerakan sederhana supaya bentuk produk tidak berubah; tanpa teks di layar, tanpa logo atau watermark tambahan. Selaraskan dengan adegan di scenes.\n" +
+      "- ide: 'konsep' satu kalimat cerita pendek yang dekat dengan keseharian pembeli (misalnya pagi buru-buru, mau ke pengajian, ke pasar, kondangan), bukan sekadar foto katalog; 'hook' kalimat pembuka video maksimal 8 kata.\n" +
+      "- scenes: tepat 4 adegan untuk satu klip 8 detik. 'detik' berturut-turut '0-2','2-4','4-6','6-8'. 'label' berurutan Hook, Masalah, Solusi, Ajakan. 'aksi' maksimal 14 kata: apa yang tampak, kreatif dan berbeda di tiap adegan (suasana, properti, sudut kamera), bukan sekadar foto produk. 'teks' teks di layar maksimal 6 kata. 'fokus' salah satu dari: utuh, dekat, detail. 'prompt_gambar' prompt bahasa Inggris 25 sampai 45 kata untuk membuat gambar adegan itu di Google Flow dengan foto produk sebagai acuan: produk persis sama seperti di foto, tanpa orang dan tanpa wajah (pakai tata letak benda, digantung, di atas meja atau kursi, manekin tanpa wajah), suasana dan cahaya jelas, tanpa teks di gambar, rasio 9:16.\n" +
+      "- flow: satu prompt bahasa Inggris 60 sampai 90 kata untuk Google Flow mode Frames to Video dengan foto produk sebagai frame awal. Wajib memuat: produk persis sama seperti di foto (bentuk, warna, logo, tekstur); satu suasana lifestyle yang kreatif sesuai ide.konsep (bukan latar polos); hanya satu gerak kamera pelan; gerak alami yang halus seperti kain tertiup angin; cahaya lembut; tanpa teks di layar, tanpa logo atau watermark tambahan.\n" +
       "- voiceover: maksimal 20 kata, santai, cukup dibaca dalam 8 detik.";
   }
 
@@ -596,31 +608,59 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       });
     })).then(function(a){return a.filter(Boolean)});
   }
-  function drawStoryboard(cv, list, scenes, nama){
-    var W = 1080, m = 40, g = 24, top = 120, capH = 270, pw = Math.floor((W-2*m-g)/2), ph = Math.round(pw*16/9);
+  var PAL = {hook:["#FFE1EA","#D9577F"], masalah:["#E5EBF8","#5472AA"], solusi:["#DEF2E5","#3C8A63"], ajakan:["#FFEFD2","#BC7414"]};
+  function palKey(label, i){
+    var k = String(label||"").toLowerCase();
+    for(var n in PAL) if(k.indexOf(n)===0) return n;
+    return ["hook","masalah","solusi","ajakan"][i % 4];
+  }
+  function drawStoryboard(cv, list, scenes, nama, konsep){
+    var W = 1080, m = 40, g = 24, top = 190, capH = 220, pw = Math.floor((W-2*m-g)/2), ph = Math.round(pw*16/9);
     var rows = Math.ceil(scenes.length/2), H = top + rows*(ph+capH) + (rows-1)*g + m;
     cv.width = W; cv.height = H;
     var ctx = cv.getContext("2d");
-    var bg = ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,"#FFF1F5"); bg.addColorStop(1,"#FFD9E6"); ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+    var bg = ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,"#FFF6F9"); bg.addColorStop(1,"#FFE3EC"); ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
     ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.fillStyle = "#3D2B33"; ctx.font = "600 46px Fredoka, Nunito, sans-serif";
     var ttl = "Storyboard: " + nama, ttl0 = ttl; while(ttl.length>4 && ctx.measureText(ttl).width > W-2*m) ttl = ttl.slice(0,-2);
     if(ttl!==ttl0) ttl = ttl.replace(/\s+$/,"") + "…";
     ctx.fillText(ttl, m, 78);
-    var fk = {utuh:{fit:"contain", zoom:1}, dekat:{fit:"cover", zoom:1.5}, detail:{fit:"cover", zoom:2.4}};
+    if(konsep){
+      ctx.fillStyle = "#8C6E78"; ctx.font = "500 28px Nunito, sans-serif";
+      wrapText(ctx, konsep, W-2*m).slice(0,2).forEach(function(ln,k){ctx.fillText(ln, m, 122 + k*36)});
+    }
+    var fk = {utuh:{fit:"cover", zoom:1.0}, dekat:{fit:"cover", zoom:1.5}, detail:{fit:"cover", zoom:2.3}};
+    var ang = [-0.05, 0.04, -0.035, 0.05];
     scenes.forEach(function(sc, i){
       var x = m + (i%2)*(pw+g), y = top + Math.floor(i/2)*(ph+capH+g);
-      var it = list[i % list.length], kind = fk[sc.fokus] ? sc.fokus : "utuh", f = fk[kind];
-      if(kind==="utuh" && it.an.r.sw/it.an.r.sh <= 0.75) f = {fit:"cover", zoom:1.15};
+      var it = list[i % list.length], kind = fk[sc.fokus] ? sc.fokus : "utuh", f = fk[kind], key = palKey(sc.label, i), pal = PAL[key];
       var st = {fit:f.fit, zoom:f.zoom, px:0.5, py:0.5, auto:true, fx:it.an.fx, fy:it.an.fy};
-      ctx.save(); ctx.shadowColor = "rgba(184,71,107,0.25)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; ctx.fillStyle = "#fff"; rr(ctx,x,y,pw,ph,24); ctx.fill(); ctx.restore();
-      paintPhoto(ctx, it.im, it.an.r, x, y, pw, ph, st, 24);
-      ctx.fillStyle = "#B8476B"; ctx.beginPath(); ctx.arc(x+44, y+44, 28, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = "#fff"; ctx.font = "600 30px Fredoka, Nunito, sans-serif"; ctx.textAlign = "center"; ctx.fillText(String(i+1), x+44, y+55); ctx.textAlign = "left";
+      ctx.save(); ctx.shadowColor = "rgba(184,71,107,0.22)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; ctx.fillStyle = pal[0]; rr(ctx,x,y,pw,ph,28); ctx.fill(); ctx.restore();
+      ctx.save(); rr(ctx,x,y,pw,ph,28); ctx.clip();
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.beginPath(); ctx.arc(x+pw*0.9, y+ph*0.1, pw*0.36, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x+pw*0.02, y+ph*0.96, pw*0.46, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = pal[1]; ctx.font = "600 24px Nunito, sans-serif";
+      var lab = (i+1) + "  " + String(sc.label || key).toUpperCase(), lw = ctx.measureText(lab).width + 40;
+      rr(ctx, x+28, y+28, lw, 46, 23); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillText(lab, x+48, y+59);
+      ctx.fillStyle = "#3D2B33"; ctx.font = "600 56px Fredoka, Nunito, sans-serif";
+      var hy = y + 150;
+      wrapText(ctx, sc.teks || "", pw-56).slice(0,3).forEach(function(ln){ctx.fillText(ln, x+28, hy); hy += 66});
+      var fw = Math.round(pw*(kind==="utuh" ? 0.74 : kind==="dekat" ? 0.82 : 0.86)), fh = Math.round(fw*(kind==="utuh" ? 1.12 : kind==="dekat" ? 1.0 : 0.92));
+      var cx = x + pw/2, cy = y + ph - fh/2 - (key==="ajakan" ? 130 : 92);
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang[i%4]);
+      ctx.shadowColor = "rgba(61,43,51,0.25)"; ctx.shadowBlur = 26; ctx.shadowOffsetY = 12; ctx.fillStyle = "#fff"; rr(ctx, -fw/2-12, -fh/2-12, fw+24, fh+24, 26); ctx.fill();
+      ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      paintPhoto(ctx, it.im, it.an.r, -fw/2, -fh/2, fw, fh, st, 18);
+      ctx.restore();
+      if(key==="ajakan"){
+        ctx.fillStyle = pal[1]; rr(ctx, x+70, y+ph-72, pw-140, 52, 26); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.font = "600 26px Nunito, sans-serif"; ctx.textAlign = "center"; ctx.fillText("Link ada di bawah", x+pw/2, y+ph-37); ctx.textAlign = "left";
+      }
+      ctx.restore();
       var yy = y + ph + 46;
-      ctx.fillStyle = "#B8476B"; ctx.font = "600 30px Nunito, sans-serif"; ctx.fillText((sc.detik||"") + " detik", x, yy); yy += 40;
-      ctx.fillStyle = "#3D2B33"; ctx.font = "600 28px Nunito, sans-serif";
-      if(sc.teks) wrapText(ctx, "Teks: " + sc.teks, pw).slice(0,2).forEach(function(ln){ctx.fillText(ln, x, yy); yy += 36});
-      ctx.fillStyle = "#8C6E78"; ctx.font = "500 26px Nunito, sans-serif";
+      ctx.fillStyle = pal[1]; ctx.font = "600 30px Nunito, sans-serif"; ctx.fillText((sc.detik||"") + " detik", x, yy); yy += 40;
+      ctx.fillStyle = "#6F5560"; ctx.font = "500 26px Nunito, sans-serif";
       wrapText(ctx, sc.aksi||"", pw).slice(0,3).forEach(function(ln){ctx.fillText(ln, x, yy); yy += 34});
     });
   }
@@ -634,10 +674,10 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       setTimeout(function(){URL.revokeObjectURL(a.href)}, 3000);
     }, "image/png");
   }
-  function renderStoryboard(scenes, imgs, nama){
+  function renderStoryboard(scenes, imgs, nama, konsep){
     var wrap = document.createElement("article"); wrap.className = "card";
     var h = document.createElement("h3"); h.textContent = "Storyboard video 8 detik"; h.style.marginBottom = "6px"; wrap.appendChild(h);
-    var hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Urutan adegan untuk perintah Flow. Gambarnya diambil dari foto produkmu, jadi produknya tidak berubah. Unduh bingkai awal untuk dipakai di Frames to Video."; wrap.appendChild(hint);
+    var hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Papan cerita video 8 detik: tiap adegan punya peran (Hook, Masalah, Solusi, Ajakan). Foto produk dipakai apa adanya, tidak diubah AI. Untuk suasana yang lebih kreatif, pakai Prompt gambar adegan di bawah lewat Flow."; wrap.appendChild(hint);
     var cv = document.createElement("canvas"); cv.style.cssText = "width:100%;max-width:340px;height:auto;border-radius:14px;display:block;margin:10px 0"; wrap.appendChild(cv);
     var row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
     var b1 = document.createElement("button"); b1.type = "button"; b1.className = "btn ghost"; b1.textContent = "Unduh storyboard";
@@ -645,30 +685,55 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     row.appendChild(b1); row.appendChild(b2); wrap.appendChild(row);
     var L = [];
     var ready = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load("600 46px Fredoka"), document.fonts.load("500 26px Nunito")]).catch(function(){}) : Promise.resolve();
-    loadImgs(imgs).then(function(l){ L = l; if(!L.length) return; return ready.then(function(){ drawStoryboard(cv, L, scenes.slice(0,4), nama) }); });
+    loadImgs(imgs).then(function(l){ L = l; if(!L.length) return; return ready.then(function(){ drawStoryboard(cv, L, scenes.slice(0,4), nama, konsep) }); });
     b1.onclick = function(){ saveCv(cv, "storyboard.png") };
     b2.onclick = function(){ if(!L.length) return; var fr = document.createElement("canvas"); drawFrame(fr, L[0]); saveCv(fr, "bingkai-awal.png") };
     out().appendChild(wrap);
   }
 
   function renderMain(d, link, imgs){
-    var p = d.produk || {};
+    var p = d.produk || {}, ide = d.ide || {};
     var tags = (d.hashtag || []).map(function(h){h = String(h).trim().replace(/\s+/g,""); return h && h.charAt(0)==="#" ? h : (h ? "#" + h : "")}).filter(Boolean);
     var tag5 = tags.slice(0,5).join(" "), tag6 = tags.slice(0,6).join(" ");
     var ring = [p.nama && ("Nama: " + p.nama), p.harga && ("Harga: " + p.harga), p.info && ("Info: " + p.info)].filter(Boolean).join("\n");
-    var items = [{label:"Terbaca dari screenshot", teks:(ring || "Belum ada info yang terbaca.") + "\n\nCek dulu. Kalau ada yang salah, tulis yang benar di Opsi lain lalu buat ulang."}];
+    var box = out(); box.innerHTML = "";
+    var seg = document.createElement("div"); seg.className = "seg"; seg.setAttribute("role","tablist");
+    var secs = {};
+    [["teks","Teks"],["gambar","Gambar"],["video","Video"]].forEach(function(t, i){
+      var b = document.createElement("button"); b.type = "button"; b.textContent = t[1]; b.setAttribute("role","tab"); b.setAttribute("aria-selected", i===0);
+      var sec = document.createElement("div"); sec.className = "sec" + (i===0 ? "" : " hide"); secs[t[0]] = sec;
+      b.onclick = function(){
+        seg.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-selected", x===b)});
+        for(var k in secs) secs[k].classList.toggle("hide", k!==t[0]);
+      };
+      seg.appendChild(b);
+    });
+    box.appendChild(seg); ["teks","gambar","video"].forEach(function(k){box.appendChild(secs[k])});
+
+    var items = [{label:"Terbaca dari screenshot", mini:true, teks:(ring || "Belum ada info yang terbaca.") + "\n\nCek dulu. Kalau ada yang salah, tulis yang benar di Opsi lain lalu buat ulang."}];
     (d.facebook || []).forEach(function(t,i){items.push({label:"Facebook " + (i+1), teks: t + "\n\nLink: " + link + (tag5 ? "\n\n" + tag5 : "")})});
     (d.wa || []).forEach(function(t,i){items.push({label:"Status WA " + (i+1), teks: t + "\nLink: " + link})});
     if(d.tiktok) items.push({label:"Caption TikTok", teks: d.tiktok + (tag6 ? "\n\n" + tag6 : "")});
     if(tags.length) items.push({label:"Hashtag", teks: tags.join(" ")});
-    showCards(items, false);
-    if(Array.isArray(d.gambar) && imgs.length) renderGambar(d.gambar, imgs);
-    if(Array.isArray(d.scenes) && d.scenes.length && imgs.length) renderStoryboard(d.scenes, imgs, p.nama || p.jenis || "Produk");
-    var more = [];
-    if(d.flow) more.push({label:"Perintah Flow (tempel langsung)", teks:d.flow});
-    if(d.voiceover) more.push({label:"Voice over 8 detik", teks:d.voiceover});
-    if(more.length) showCards(more, false, true);
-    out().appendChild(flowGuide());
+    into(secs.teks, function(){ showCards(items, false, true) });
+
+    into(secs.gambar, function(){
+      if(Array.isArray(d.gambar) && imgs.length) renderGambar(d.gambar, imgs);
+    });
+
+    into(secs.video, function(){
+      var v = [];
+      if(ide.konsep || ide.hook) v.push({label:"Ide cerita", teks:[ide.konsep, ide.hook && ("Hook: " + ide.hook)].filter(Boolean).join("\n")});
+      if(v.length) showCards(v, false, true);
+      var sc = Array.isArray(d.scenes) ? d.scenes : [];
+      if(sc.length && imgs.length) renderStoryboard(sc, imgs, p.nama || p.jenis || "Produk", ide.konsep || "");
+      var more = [];
+      if(d.flow) more.push({label:"Perintah Flow (tempel langsung)", teks:d.flow});
+      sc.slice(0,4).forEach(function(x,i){ if(x.prompt_gambar) more.push({label:"Prompt gambar adegan " + (i+1) + " (" + (x.label || "") + ")", teks:x.prompt_gambar}) });
+      if(d.voiceover) more.push({label:"Voice over 8 detik", teks:d.voiceover});
+      if(more.length) showCards(more, false, true);
+      outOverride.appendChild(flowGuide());
+    });
   }
 
   $("go").onclick = async function(){
