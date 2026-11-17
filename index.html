@@ -69,14 +69,13 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 <body>
 <div class="wrap">
   <h1>AsriTools</h1>
-  <p class="sub">Isi data barang, tekan tombol, lalu salin hasilnya. Untuk postingan Facebook, story WhatsApp, dan video TikTok Shop.</p>
+  <p class="sub">Unggah screenshot produk dan tempel link affiliate. Narasi, hashtag, storyboard, dan perintah video Flow jadi sekaligus.</p>
 
   <button class="install hide" id="install" type="button">Pasang di layar utama</button>
   <p class="iosnote hide" id="iosnote">Di iPhone: buka lewat Safari, ketuk tombol Bagikan, lalu pilih Tambah ke Layar Utama.</p>
 
   <div class="tabs" role="tablist" id="tabs">
-    <button class="tab" role="tab" aria-selected="true" data-tab="narasi">Narasi</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="video">Video TikTok</button>
+    <button class="tab" role="tab" aria-selected="true" data-tab="buat">Buat konten</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="riset">Riset tren</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="setelan">Pengaturan</button>
   </div>
@@ -84,53 +83,37 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
   <div id="main" class="grid">
     <section class="panel" aria-label="Data barang">
       <div id="fieldsProduk">
-      <label for="jenis">Jenis barang</label>
-      <input id="jenis" placeholder="Contoh: kemeja linen pria">
-      <label for="nama">Nama produk (opsional)</label>
-      <input id="nama" placeholder="Nama di toko">
-      <label for="link">Link produk</label>
-      <input id="link" type="url" placeholder="https://...">
-      <p class="hint">Link hanya disimpan sebagai acuan. Browser tidak bisa membaca isi halaman toko, jadi tempel detail penting di kolom bawah.</p>
-      <label for="detail">Detail dari halaman produk (opsional)</label>
-      <textarea id="detail" placeholder="Bahan, ukuran, fitur, hal yang ingin disorot"></textarea>
-      <label>Gambar produk (maks. 4)</label>
-      <label class="drop" tabindex="0" for="gambar" id="dropLabel">Pilih gambar dari galeri</label>
+      <label>1. Screenshot foto produk (maks. 4)</label>
+      <label class="drop" tabindex="0" for="gambar" id="dropLabel">Pilih screenshot foto produk</label>
       <input id="gambar" type="file" accept="image/*" multiple class="hide">
       <div class="thumbs" id="thumbs"></div>
       <details class="flowbox">
         <summary>Foto berantakan? Rapikan dulu di Google Flow</summary>
-        <p class="hint" style="margin-top:8px">1. Buka Flow, masuk dengan akun Google. 2. Unggah fotonya dan pilih edit gambar. 3. Tempel perintah di bawah. 4. Unduh hasilnya, lalu unggah ke sini sebagai gambar produk.</p>
+        <p class="hint" style="margin-top:8px">1. Buka Flow, masuk dengan akun Google. 2. Unggah fotonya dan pilih edit gambar. 3. Tempel perintah di bawah. 4. Unduh hasilnya, lalu unggah ke sini sebagai foto produk.</p>
         <textarea id="flowPrompt" readonly rows="8" aria-label="Perintah edit foto untuk Flow"></textarea>
         <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
           <button type="button" class="btn ghost" id="flowCopy">Salin perintah</button>
           <a class="btn ghost" href="https://labs.google/fx/tools/flow" target="_blank" rel="noopener noreferrer">Buka Flow</a>
         </div>
         <p class="hint">Setelah jadi, bandingkan dengan foto asli. Bentuk, warna, dan logo produk harus tetap sama. Kalau Flow menanyakan rasio gambar, pilih 3:4.</p>
-        <p class="hint">Kalau Flow menjawab Failed atau melanggar kebijakan, kemungkinan fotonya ada wajah orang. Potong dulu bagian wajah, pakai foto produk tanpa orang, atau lewati langkah ini dan rapikan lewat Atur foto di bawah hasil Gambar bertulis.</p>
+        <p class="hint">Kalau Flow menjawab Failed atau melanggar kebijakan, kemungkinan fotonya ada wajah orang. Potong dulu bagian wajah, pakai foto produk tanpa orang, atau lewati langkah ini. Storyboard dan gambar bertulis tetap bisa dibuat dari foto aslinya.</p>
       </details>
-      </div>
-      <div id="opsiNarasi">
+      <label>2. Screenshot deskripsi barang (maks. 3)</label>
+      <label class="drop" tabindex="0" for="deskripsi" id="dropDesk">Pilih screenshot deskripsi</label>
+      <input id="deskripsi" type="file" accept="image/*" multiple class="hide">
+      <div class="thumbs" id="thumbsDesk"></div>
+      <p class="hint">Screenshot per layar lebih terbaca daripada satu screenshot yang sangat panjang.</p>
+      <label for="link">3. Link affiliate produk</label>
+      <input id="link" placeholder="Tempel link di sini">
+      <details class="flowbox">
+        <summary>Opsi lain (boleh dilewati)</summary>
         <label for="gaya">Gaya bahasa</label>
-        <select id="gaya">
-          <option>Chat WA ke teman, paling santai</option>
-          <option>Elegan tapi tetap luwes</option>
-          <option>Edukatif dan ringan</option>
-          <option>Singkat dan puitis</option>
-        </select>
-        <label for="platform">Untuk</label>
-        <select id="platform">
-          <option value="keduanya">Facebook dan story WA</option>
-          <option value="fb">Facebook saja</option>
-          <option value="wa">Story WA saja</option>
-        </select>
-      </div>
-      <div id="opsiVideo" class="hide">
-        <div class="row">
-          <div><label for="durasi">Durasi</label>
-            <select id="durasi"><option value="8 detik" selected>8 detik, 1 klip untuk Flow</option><option>15 detik</option><option>30 detik</option><option>45 detik</option><option>60 detik</option></select></div>
-          <div><label for="gayaVideo">Gaya</label>
-            <select id="gayaVideo"><option>Estetik dan tenang</option><option>Cerita sehari-hari</option><option>Edukasi singkat</option><option>Sebelum dan sesudah</option></select></div>
-        </div>
+        <select id="gaya"><option>Chat WA ke teman, paling santai</option><option>Elegan tapi tetap luwes</option><option>Edukatif dan ringan</option><option>Singkat dan puitis</option></select>
+        <label for="gayaVideo">Gaya video</label>
+        <select id="gayaVideo"><option>Estetik dan tenang</option><option>Cerita sehari-hari</option><option>Edukasi singkat</option><option>Sebelum dan sesudah</option></select>
+        <label for="catatan">Catatan untuk AI</label>
+        <textarea id="catatan" rows="3" placeholder="Contoh: harga Rp45 ribu, bisa COD, gratis ongkir"></textarea>
+      </details>
       </div>
       <div id="opsiRiset" class="hide">
         <label for="platRiset">Platform</label>
@@ -141,12 +124,11 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         <select id="hargaRiset"><option value="semua harga">Semua harga</option><option value="di bawah Rp50 ribu">Di bawah Rp50 ribu</option><option value="Rp50 ribu sampai Rp200 ribu">Rp50 ribu sampai Rp200 ribu</option><option value="di atas Rp200 ribu">Di atas Rp200 ribu</option></select>
         <p class="hint">Hasil diambil dari pencarian web, bukan dari data internal Shopee atau TikTok Shop, jadi anggap sebagai bahan awal. Cek lagi di dashboard afiliasi sebelum promosi. Kuota pencarian gratis per hari lebih kecil daripada kuota menulis.</p>
       </div>
-      <button class="btn" id="go">Buat narasi</button>
+      <button class="btn" id="go">Buat konten</button>
     </section>
 
     <section aria-live="polite" id="hasil">
-      <div id="h-narasi"><div class="empty">Hasil akan muncul di sini.</div></div>
-      <div id="h-video" class="hide"><div class="empty">Hasil akan muncul di sini.</div></div>
+      <div id="h-buat"><div class="empty">Hasil akan muncul di sini.</div></div>
       <div id="h-riset" class="hide"><div class="empty">Hasil akan muncul di sini.</div></div>
     </section>
   </div>
@@ -170,9 +152,9 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 <script>
 (function(){
   var $ = function(id){return document.getElementById(id)};
-  var tab = "narasi", runTab = "narasi", images = [];
+  var tab = "buat", runTab = "buat", images = [], descs = [];
   function out(){return $("h-" + runTab)}
-  function goLabel(t){return t==="video" ? "Buat rancangan video" : t==="riset" ? "Cari tren" : "Buat narasi"}
+  function goLabel(t){return t==="riset" ? "Cari tren" : "Buat konten"}
   var store = {
     get:function(k){try{return localStorage.getItem(k)||""}catch(e){return ""}},
     set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}
@@ -216,28 +198,27 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     var isSet = t==="setelan";
     $("main").classList.toggle("hide", isSet);
     $("setelan").classList.toggle("hide", !isSet);
-    $("opsiNarasi").classList.toggle("hide", t!=="narasi");
-    $("opsiVideo").classList.toggle("hide", t!=="video");
     $("fieldsProduk").classList.toggle("hide", t==="riset");
     $("opsiRiset").classList.toggle("hide", t!=="riset");
     $("go").textContent = goLabel(t);
-    ["narasi","video","riset"].forEach(function(n){$("h-"+n).classList.toggle("hide", n!==t)});
+    ["buat","riset"].forEach(function(n){$("h-"+n).classList.toggle("hide", n!==t)});
   }
   $("tabs").addEventListener("click", function(e){var b=e.target.closest(".tab"); if(b) setTab(b.dataset.tab)});
   $("dropLabel").addEventListener("keydown", function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault(); $("gambar").click()}});
+  $("dropDesk").addEventListener("keydown", function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault(); $("deskripsi").click()}});
 
   $("simpan").onclick = function(){
     store.set("gk",$("key").value.trim()); store.set("gm",$("model").value.trim()||"gemini-3.8-flash"); store.set("gs",$("gayaAku").value.trim());
     $("simpan").textContent = "Tersimpan"; setTimeout(function(){$("simpan").textContent="Simpan pengaturan"},1400);
   };
 
-  function shrink(file){
+  function shrink(file, mx){
     return new Promise(function(res){
       var r = new FileReader();
       r.onload = function(){
         var im = new Image();
         im.onload = function(){
-          var m = 1024, s = Math.min(1, m/Math.max(im.width, im.height));
+          var m = mx || 1024, s = Math.min(1, m/Math.max(im.width, im.height));
           var c = document.createElement("canvas"); c.width = Math.round(im.width*s); c.height = Math.round(im.height*s);
           c.getContext("2d").drawImage(im,0,0,c.width,c.height);
           res(c.toDataURL("image/jpeg",.8));
@@ -248,28 +229,32 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       r.readAsDataURL(file);
     });
   }
-  function drawThumbs(){
-    var box = $("thumbs"); box.innerHTML = "";
-    images.forEach(function(src,i){
+  function drawThumbs(arr, boxId){
+    var box = $(boxId); box.innerHTML = "";
+    arr.forEach(function(src,i){
       var d = document.createElement("div"); d.className = "thumb";
-      var im = document.createElement("img"); im.src = src; im.alt = "Gambar produk " + (i+1);
+      var im = document.createElement("img"); im.src = src; im.alt = "Gambar " + (i+1);
       var b = document.createElement("button"); b.type = "button"; b.textContent = "×"; b.setAttribute("aria-label","Hapus gambar "+(i+1));
-      b.onclick = function(){images.splice(i,1); drawThumbs()};
+      b.onclick = function(){arr.splice(i,1); drawThumbs(arr, boxId)};
       d.appendChild(im); d.appendChild(b); box.appendChild(d);
     });
   }
-  $("gambar").onchange = async function(e){
-    var files = Array.from(e.target.files).slice(0, 4-images.length);
-    for(var f of files){var s = await shrink(f); if(s) images.push(s)}
-    e.target.value = ""; drawThumbs();
-  };
+  function bindPicker(inp, arr, max, dim, boxId){
+    $(inp).onchange = async function(e){
+      var files = Array.from(e.target.files).slice(0, max-arr.length);
+      for(var f of files){var s = await shrink(f, dim); if(s) arr.push(s)}
+      e.target.value = ""; drawThumbs(arr, boxId);
+    };
+  }
+  bindPicker("gambar", images, 4, 1024, "thumbs");
+  bindPicker("deskripsi", descs, 3, 2000, "thumbsDesk");
 
   function showError(msg){
     var d = document.createElement("div"); d.className = "err"; d.textContent = msg;
     out().innerHTML = ""; out().appendChild(d);
   }
-  function showCards(items, useBtn){
-    var box = out(); box.innerHTML = "";
+  function showCards(items, useBtn, append){
+    var box = out(); if(!append) box.innerHTML = "";
     items.forEach(function(it){
       var c = document.createElement("article"); c.className = "card";
       var top = document.createElement("div"); top.className = "top";
@@ -283,7 +268,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       var acts = document.createElement("div"); acts.className = "acts";
       if(useBtn && !/^catatan/i.test(it.label||"")){
         var u = document.createElement("button"); u.type = "button"; u.className = "btn ghost"; u.textContent = "Pakai";
-        u.onclick = function(){$("jenis").value = it.label; setTab("narasi"); window.scrollTo({top:0})};
+        u.onclick = function(){$("catatan").value = "Ide dari riset: " + it.label; setTab("buat"); window.scrollTo({top:0})};
         acts.appendChild(u);
       }
       acts.appendChild(b);
@@ -338,7 +323,20 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
         for(var j=j0; j<Math.min(j0+4,gy); j++) for(var i=i0; i<Math.min(i0+4,gx); i++){var q2=j*gx+i; ws+=cW[q2]; xs+=cX[q2]; ys+=cY[q2]}
         if(ws>best){best=ws; bx=xs; by=ys}
       }
-      if(best>0){fx = bx/best/sc; fy = by/best/sc}
+      if(best>0){
+        var cxp = bx/best, cyp = by/best, R = 0.42*Math.max(rw,rh);
+        for(var it2=0; it2<8; it2++){
+          var s2=0, x2=0, y2=0;
+          for(var y3=t; y3<H-bo; y3+=2) for(var x3=l; x3<W-r; x3+=2){
+            var dx=x3-cxp, dy=y3-cyp; if(dx*dx+dy*dy>R*R) continue;
+            var q3=(y3*W+x3)*4, w3=Math.max(d[q3],d[q3+1],d[q3+2])-Math.min(d[q3],d[q3+1],d[q3+2]);
+            s2+=w3; x2+=w3*x3; y2+=w3*y3;
+          }
+          if(s2<=0) break;
+          cxp=x2/s2; cyp=y2/s2;
+        }
+        fx = cxp/sc; fy = cyp/sc;
+      }
     }
     var pl=l/sc, pt=t/sc, pr=r/sc, pb=bo/sc, pad=0.04*Math.max(w-pl-pr, h-pt-pb);
     var sx=pl-Math.min(pad,0.25*pl), sy=pt-Math.min(pad,0.25*pt), ex=w-pr+Math.min(pad,0.25*pr), ey=h-pb+Math.min(pad,0.25*pb);
@@ -460,10 +458,9 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     out().appendChild(wrap);
   }
   function updateFlowPrompt(){
-    var j = $("jenis").value.trim() || "product";
-    $("flowPrompt").value = "Edit this photo. It shows a product: " + j + ". Keep the product exactly the same: shape, color, material texture, logo, proportions and every detail. Do not redesign, recolor or add anything to the product. Remove everything that is not the product: phone status bar, app buttons, screenshot interface, text, stickers, price tags, watermarks and background clutter. Place the product centered on a clean, seamless soft-pink and white studio background with gentle natural light and a subtle soft shadow. Sharp, neat, professional product photo, vertical 3:4 aspect ratio, no text, no watermark.";
+    $("flowPrompt").value = "Edit this photo of a product. Keep the product exactly the same: shape, color, material texture, logo, proportions and every detail. Do not redesign, recolor or add anything to the product. Remove everything that is not the product: phone status bar, app buttons, screenshot interface, text, stickers, price tags, watermarks and background clutter. Place the product centered on a clean, seamless soft-pink and white studio background with gentle natural light and a subtle soft shadow. Sharp, neat, professional product photo, vertical 3:4 aspect ratio, no text, no watermark.";
   }
-  $("jenis").addEventListener("input", updateFlowPrompt); updateFlowPrompt();
+  updateFlowPrompt();
   $("flowCopy").onclick = function(){
     var b = $("flowCopy"), done = function(){b.textContent = "Tersalin"; setTimeout(function(){b.textContent = "Salin perintah"}, 1200)};
     if(navigator.clipboard) navigator.clipboard.writeText($("flowPrompt").value).then(done, function(){});
@@ -472,7 +469,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     var c = document.createElement("article"); c.className = "card";
     var h = document.createElement("h3"); h.textContent = "Cara membuat videonya di Flow"; h.style.marginBottom = "8px"; c.appendChild(h);
     var p = document.createElement("p");
-    p.textContent = "1. Buka Google Flow dan masuk dengan akun Google.\n2. Buat proyek baru, pilih Frames to Video, lalu unggah foto produk yang sudah rapi sebagai bingkai awal.\n3. Tempel perintah dari kartu Perintah Flow (atau Prompt video scene). Pilih Veo 3.1 Lite (10 kredit, hemat) atau Fast (20 kredit), durasi 8 detik, rasio 9:16.\n4. Tekan Generate, tunggu, lalu unduh videonya.\n5. Buka TikTok, tempel teks di layar dan voice over dari kartu di bawah, lalu pakai caption-nya.";
+    p.textContent = "1. Buka Google Flow dan masuk dengan akun Google.\n2. Buat proyek baru, pilih Frames to Video, lalu unggah bingkai awal (unduh dari kartu Storyboard) sebagai gambar awal.\n3. Tempel Perintah Flow dari kartu di atas. Pilih Veo 3.1 Lite (10 kredit, hemat) atau Fast (20 kredit), durasi 8 detik, rasio 9:16.\n4. Tekan Generate, tunggu, lalu unduh videonya.\n5. Buka TikTok atau aplikasi edit video, tempel teks di layar dari storyboard dan voice over dari kartu di atas. Saat mengunggah, tautkan produk affiliate-nya.";
     c.appendChild(p);
     var n = document.createElement("p"); n.className = "hint"; n.style.marginTop = "10px";
     n.textContent = "Jatah gratis 50 kredit per hari, cukup untuk sekitar 5 klip Lite atau 2 klip Fast. Nama menu bisa sedikit berbeda. Cek hasilnya: produk di video harus tetap sama dengan aslinya.";
@@ -511,115 +508,200 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       out().appendChild(c);
     }
   }
-  function buildPrompt(){
-    if(tab==="riset") return buildRiset();
-    var info = "Jenis barang: " + $("jenis").value.trim() +
-      "\nNama produk: " + ($("nama").value.trim() || "-") +
-      "\nLink produk (hanya acuan, jangan dibuka): " + ($("link").value.trim() || "-") +
-      "\nDetail dari penjual: " + ($("detail").value.trim() || "-");
-    var gayaAku = store.get("gs");
-    var dasar = "Kamu penulis konten afiliasi berbahasa Indonesia. Prinsip: soft-selling. GAYA BAHASA (penting): tulis seperti chat WhatsApp ke teman dekat, bukan seperti artikel atau iklan. Pembaca malas baca, jadi SINGKAT: satu ide per versi, kalimat pendek (maksimal 12 kata per kalimat), tanpa basa-basi pembuka dan tanpa penjelasan panjang. Pakai bahasa sehari-hari orang Indonesia: 'nggak', 'banget', 'aja', 'kok', 'deh', 'nih', 'sih', 'lho' secukupnya, dengan sapaan 'kamu' (ikuti catatan gaya pemilik akun jika ada). Hindari kata baku seperti 'merupakan', 'sehingga', 'dapat', 'memiliki', 'tersebut', 'terdapat', 'namun', 'oleh karena itu', 'berbagai', 'menjadikan'. Pilih satu fakta pengetahuan yang paling menarik, jangan semuanya. Buka dengan pertanyaan atau kejadian sehari-hari, bukan definisi. Emoji maksimal 1 sampai 2, hanya kalau natural. Contoh kaku: 'Kain linen merupakan bahan alami yang memiliki sirkulasi udara baik sehingga nyaman dipakai seharian.' Contoh yang benar: 'Pakai kemeja seharian tapi nggak gerah? Biasanya itu linen. Seratnya memang adem banget.' Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'murah', 'buruan', 'checkout sekarang'. Isi utama adalah pengetahuan yang benar-benar berguna tentang jenis bahan, cara kerja, cara memilih, atau cara merawat barang tersebut. Produk disebut lembut di akhir sebagai contoh, bukan sebagai ajakan beli. Jangan mengarang spesifikasi yang tidak ada di data atau gambar; kalau ragu, tulis secara umum. " + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "");
-    if(tab === "narasi"){
-      var p = $("platform").value;
-      var minta = p==="fb" ? "2 versi postingan Facebook, masing-masing maksimal 3 kalimat pendek dan di bawah 45 kata" :
-                  p==="wa" ? "3 versi story WhatsApp, masing-masing 1 sampai 2 baris dan di bawah 18 kata" :
-                  "2 versi postingan Facebook (maksimal 3 kalimat pendek, di bawah 45 kata) dan 3 versi story WhatsApp (1 sampai 2 baris, di bawah 18 kata)";
-      var n = images.length, gbr = n ? " Lalu buat " + n + " teks untuk ditempel di gambar, urut sesuai gambar yang dilampirkan: 'judul' maksimal 6 kata yang bikin orang berhenti scroll, dan 'sub' maksimal 8 kata (boleh kosong)." : "";
-      return dasar + "\nGaya bahasa: " + $("gaya").value + ".\n\n" + info +
-        "\n\nBuat " + minta + ". Setiap versi memakai satu fakta pengetahuan yang berbeda. Akhiri dengan satu item berlabel 'Hashtag' berisi maksimal 5 hashtag." + gbr + "\n" +
-        (n ? 'Balas HANYA JSON valid: {"hasil":[{"label":"Facebook 1","teks":"..."}],"gambar":[{"judul":"...","sub":"..."}]}' : 'Balas HANYA JSON valid: {"hasil":[{"label":"Facebook 1","teks":"..."}]}');
+  var GAYA = "GAYA BAHASA (penting): tulis seperti chat WhatsApp ke teman dekat, bukan seperti artikel atau iklan. Pembaca malas baca, jadi SINGKAT: satu ide per versi, kalimat pendek (maksimal 12 kata per kalimat), tanpa basa-basi pembuka dan tanpa penjelasan panjang. Pakai bahasa sehari-hari orang Indonesia: 'nggak', 'banget', 'aja', 'kok', 'deh', 'nih', 'sih', 'lho' secukupnya, dengan sapaan 'kamu' (ikuti catatan gaya pemilik akun jika ada). Hindari kata baku seperti 'merupakan', 'sehingga', 'dapat', 'memiliki', 'tersebut', 'terdapat', 'namun', 'oleh karena itu', 'berbagai', 'menjadikan'. Pilih satu fakta pengetahuan yang paling menarik, jangan semuanya. Buka dengan pertanyaan atau kejadian sehari-hari, bukan definisi. Emoji maksimal 1 sampai 2, hanya kalau natural. Contoh kaku: 'Kain linen merupakan bahan alami yang memiliki sirkulasi udara baik sehingga nyaman dipakai seharian.' Contoh yang benar: 'Pakai kemeja seharian tapi nggak gerah? Biasanya itu linen. Seratnya memang adem banget.' ";
+
+  function buildMain(nFoto, nDesk){
+    var gayaAku = store.get("gs"), cat = $("catatan").value.trim();
+    var schema = '{"produk":{"nama":"...","jenis":"...","harga":"...","info":"..."},"facebook":["...","..."],"wa":["...","...","..."],"tiktok":"...","hashtag":["#..."],"gambar":[{"judul":"...","sub":"..."}],"scenes":[{"detik":"0-2","aksi":"...","teks":"...","fokus":"utuh"}],"flow":"...","voiceover":"..."}';
+    return "Kamu penulis konten afiliasi berbahasa Indonesia untuk akun olshop dan sosmed. Prinsip: soft-selling. Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'buruan', 'checkout sekarang'. Jangan mengarang spesifikasi, harga, atau klaim yang tidak ada di screenshot; kalau tidak terbaca, tulis secara umum atau kosongkan. " + GAYA + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "") +
+      "\n\nGambar yang dilampirkan, urut: " + nFoto + " foto produk, lalu " + nDesk + " screenshot deskripsi barang. Baca teks di screenshot deskripsi untuk mengetahui nama produk, bahan, ukuran, fitur, harga, dan info seperti COD atau gratis ongkir. Foto produk dipakai untuk memahami tampilan barangnya." +
+      (cat ? "\nCatatan dari pemilik akun (utamakan ini jika berbeda dengan screenshot): " + cat : "") +
+      "\nGaya bahasa: " + $("gaya").value + ". Gaya video: " + $("gayaVideo").value + "." +
+      "\n\nBalas HANYA JSON valid dengan struktur: " + schema + "\nAturan isi:\n" +
+      "- produk: isi hanya yang terbaca di screenshot, selain itu kosongkan.\n" +
+      "- facebook: 2 versi, masing-masing maksimal 3 kalimat pendek dan di bawah 45 kata. Jangan tulis link.\n" +
+      "- wa: 3 versi untuk status WhatsApp, masing-masing 1 sampai 2 baris dan di bawah 18 kata. Jangan tulis link.\n" +
+      "- Setiap versi facebook dan wa memakai satu fakta pengetahuan produk yang berbeda (dari bahan atau fitur di deskripsi).\n" +
+      "- tiktok: caption maksimal 2 kalimat pendek, tanpa hashtag dan tanpa link.\n" +
+      "- hashtag: 8 hashtag, campur yang umum dan yang spesifik jenis produk, huruf kecil tanpa spasi.\n" +
+      "- gambar: tepat " + nFoto + " item, urut sesuai foto produk. 'judul' maksimal 6 kata yang bikin orang berhenti scroll, 'sub' maksimal 8 kata (boleh kosong).\n" +
+      "- scenes: tepat 4 adegan untuk satu klip 8 detik dengan 'detik' berturut-turut '0-2','2-4','4-6','6-8'. 'aksi' apa yang tampak (maksimal 12 kata), 'teks' teks di layar (maksimal 6 kata), 'fokus' salah satu dari: utuh, dekat, detail.\n" +
+      "- flow: satu prompt bahasa Inggris 60 sampai 90 kata untuk Google Flow mode Frames to Video dengan foto produk sebagai frame awal. Wajib memuat: produk persis sama seperti di foto (bentuk, warna, logo, tekstur); hanya satu gerak kamera pelan; cahaya lembut; gerakan sederhana supaya bentuk produk tidak berubah; tanpa teks di layar, tanpa logo atau watermark tambahan. Selaraskan dengan adegan di scenes.\n" +
+      "- voiceover: maksimal 20 kata, santai, cukup dibaca dalam 8 detik.";
+  }
+
+  function parseJson(txt){
+    try{ return JSON.parse(txt.replace(/^\s*```json|```\s*$/g,"").trim()) }catch(e){ return null }
+  }
+
+  async function callGemini(parts, riset, btn){
+    var key = store.get("gk");
+    var chosen = store.get("gm") || "gemini-3.8-flash";
+    var tryList = [chosen,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash"].filter(function(m,i,a){return a.indexOf(m)===i});
+    var modes = riset ? [true,false] : [false];
+    var r = null, j = {}, usedModel = "", usedSearch = false, lastMsg = "";
+    outer:
+    for(var si=0; si<modes.length; si++){
+      for(var mi=0; mi<tryList.length; mi++){
+        var model = tryList[mi], isG3 = /gemini-3/.test(model);
+        var gen = riset ? {} : {responseMimeType:"application/json"};
+        if(!isG3) gen.temperature = riset ? 0.5 : 0.9;
+        else if(!riset) gen.thinkingConfig = {thinkingLevel:"low"};
+        var ps = parts;
+        if(riset && !modes[si]) ps = [{text: parts[0].text + "\n\n(Catatan: pencarian web tidak tersedia kali ini. Jangan mengaku punya data terbaru. Tulis sebagai dugaan dari pola musiman dan pengetahuan umum, dan beri keyakinan rendah.)"}];
+        var payload = {contents:[{role:"user",parts:ps}], generationConfig:gen};
+        if(modes[si]) payload.tools = [{google_search:{}}];
+        for(var at=0; at<3; at++){
+          r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
+            method:"POST",
+            headers:{"Content-Type":"application/json","x-goog-api-key":key},
+            body: JSON.stringify(payload)
+          });
+          try{ j = await r.json() }catch(e){ j = {} }
+          if(r.ok) break;
+          lastMsg = (j.error && j.error.message) || ("Kode " + r.status);
+          if(r.status>=500 && at<2){
+            btn.textContent = "Server sedang ramai, mencoba lagi...";
+            await new Promise(function(res){setTimeout(res, 1500*(at+1))});
+            continue;
+          }
+          break;
+        }
+        if(r.ok){ usedModel = model; usedSearch = modes[si]; break outer; }
+        if(r.status!==429 && r.status!==404 && r.status<500) break outer;
+      }
     }
-    if($("durasi").value==="8 detik") return dasar + "\nTarget: SATU klip video TikTok Shop berdurasi 8 detik, rasio 9:16, dibuat di Google Flow (Veo) dengan foto produk sebagai frame awal. Gaya: " + $("gayaVideo").value + ".\n\n" + info +
-      "\n\nBuat item berikut, urut:\n" +
-      "(1) label 'Perintah Flow (tempel langsung)': satu prompt bahasa Inggris 60 sampai 90 kata. Wajib memuat: produk tetap persis sama seperti di foto (bentuk, warna, logo, tekstur); hanya satu gerak kamera yang pelan, misalnya slow push-in atau gentle orbit; cahaya lembut dan suasana sesuai gaya; gerakan sederhana supaya bentuk produk tidak berubah; tanpa teks di layar, tanpa logo atau watermark tambahan.\n" +
-      "(2) label 'Teks di layar': 2 sampai 3 teks pendek (maksimal 6 kata) beserta detik munculnya, untuk ditempel di editor TikTok.\n" +
-      "(3) label 'Voice over 8 detik': maksimal 20 kata, bahasa santai.\n" +
-      "(4) label 'Caption dan hashtag': caption maksimal 2 kalimat pendek dan 5 hashtag.\n" +
-      'Balas HANYA JSON valid: {"hasil":[{"label":"...","teks":"..."}]}';
-    return dasar + "\nTarget: video TikTok Shop berdurasi " + $("durasi").value + ", gaya " + $("gayaVideo").value + ".\n\n" + info +
-      "\n\nBuat item-item berikut dalam urutan ini: " +
-      "(1) label 'Ide cerita': 3 ide premis singkat, " +
-      "(2) label 'Hook 3 detik pertama': 3 pilihan kalimat pembuka, " +
-      "(3) label 'Narasi voice over': naskah lengkap sesuai durasi, " +
-      "(4) label 'Alur scene': daftar scene dengan perkiraan detik, apa yang tampak, dan teks di layar, " +
-      "(5) satu item per scene berlabel 'Prompt video scene N': prompt dalam bahasa Inggris untuk generator video AI (subjek, gerak kamera, pencahayaan, suasana, rasio 9:16), tanpa teks atau logo di dalam gambar, " +
-      "(6) label 'Caption dan hashtag'.\n" +
-      'Balas HANYA JSON valid: {"hasil":[{"label":"...","teks":"..."}]}';
+    if(!r.ok){
+      var m = lastMsg;
+      if(r.status===429) m = "Kuota habis untuk model yang dicoba (" + tryList.join(", ") + "). Pesan dari Google: " + lastMsg.slice(0,280);
+      else if(r.status===404 || /no longer available/i.test(m)) m = "Model tidak tersedia untuk akun ini. Buka Pengaturan, lalu ganti Model dengan gemini-3.8-flash atau gemini-3.7-flash.";
+      if(r.status>=500) m = "Server Google sedang sibuk. Ini sementara, coba lagi beberapa menit lagi. Pesan dari Google: " + lastMsg.slice(0,200);
+      throw new Error(m);
+    }
+    return {j:j, usedModel:usedModel, usedSearch:usedSearch, chosen:chosen};
+  }
+
+  function note(res){
+    var t = [];
+    if(res.usedModel!==res.chosen) t.push("model " + res.usedModel + " dipakai karena " + res.chosen + " sedang tidak bisa");
+    if(runTab==="riset" && !res.usedSearch) t.push("tanpa pencarian web, jadi anggap hasilnya dugaan");
+    if(!t.length) return;
+    var p = document.createElement("p"); p.className = "hint"; p.textContent = "Catatan: " + t.join("; ") + "."; out().appendChild(p);
+  }
+
+  function loadImgs(srcs){
+    return Promise.all(srcs.map(function(src){
+      return new Promise(function(res){
+        var im = new Image(); im.onload = function(){res({im:im, an:analyze(im)})}; im.onerror = function(){res(null)}; im.src = src;
+      });
+    })).then(function(a){return a.filter(Boolean)});
+  }
+  function drawStoryboard(cv, list, scenes, nama){
+    var W = 1080, m = 40, g = 24, top = 120, capH = 270, pw = Math.floor((W-2*m-g)/2), ph = Math.round(pw*16/9);
+    var rows = Math.ceil(scenes.length/2), H = top + rows*(ph+capH) + (rows-1)*g + m;
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext("2d");
+    var bg = ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,"#FFF1F5"); bg.addColorStop(1,"#FFD9E6"); ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.fillStyle = "#3D2B33"; ctx.font = "600 46px Fredoka, Nunito, sans-serif";
+    var ttl = "Storyboard: " + nama, ttl0 = ttl; while(ttl.length>4 && ctx.measureText(ttl).width > W-2*m) ttl = ttl.slice(0,-2);
+    if(ttl!==ttl0) ttl = ttl.replace(/\s+$/,"") + "…";
+    ctx.fillText(ttl, m, 78);
+    var fk = {utuh:{fit:"contain", zoom:1}, dekat:{fit:"cover", zoom:1.5}, detail:{fit:"cover", zoom:2.4}};
+    scenes.forEach(function(sc, i){
+      var x = m + (i%2)*(pw+g), y = top + Math.floor(i/2)*(ph+capH+g);
+      var it = list[i % list.length], kind = fk[sc.fokus] ? sc.fokus : "utuh", f = fk[kind];
+      if(kind==="utuh" && it.an.r.sw/it.an.r.sh <= 0.75) f = {fit:"cover", zoom:1.15};
+      var st = {fit:f.fit, zoom:f.zoom, px:0.5, py:0.5, auto:true, fx:it.an.fx, fy:it.an.fy};
+      ctx.save(); ctx.shadowColor = "rgba(184,71,107,0.25)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; ctx.fillStyle = "#fff"; rr(ctx,x,y,pw,ph,24); ctx.fill(); ctx.restore();
+      paintPhoto(ctx, it.im, it.an.r, x, y, pw, ph, st, 24);
+      ctx.fillStyle = "#B8476B"; ctx.beginPath(); ctx.arc(x+44, y+44, 28, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "600 30px Fredoka, Nunito, sans-serif"; ctx.textAlign = "center"; ctx.fillText(String(i+1), x+44, y+55); ctx.textAlign = "left";
+      var yy = y + ph + 46;
+      ctx.fillStyle = "#B8476B"; ctx.font = "600 30px Nunito, sans-serif"; ctx.fillText((sc.detik||"") + " detik", x, yy); yy += 40;
+      ctx.fillStyle = "#3D2B33"; ctx.font = "600 28px Nunito, sans-serif";
+      if(sc.teks) wrapText(ctx, "Teks: " + sc.teks, pw).slice(0,2).forEach(function(ln){ctx.fillText(ln, x, yy); yy += 36});
+      ctx.fillStyle = "#8C6E78"; ctx.font = "500 26px Nunito, sans-serif";
+      wrapText(ctx, sc.aksi||"", pw).slice(0,3).forEach(function(ln){ctx.fillText(ln, x, yy); yy += 34});
+    });
+  }
+  function drawFrame(cv, it){
+    cv.width = 1080; cv.height = 1920;
+    paintPhoto(cv.getContext("2d"), it.im, it.an.r, 0, 0, 1080, 1920, {fit:"contain", zoom:1, px:0.5, py:0.5, auto:false, fx:null, fy:null}, 0);
+  }
+  function saveCv(cv, nama){
+    cv.toBlob(function(bl){
+      var a = document.createElement("a"); a.href = URL.createObjectURL(bl); a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){URL.revokeObjectURL(a.href)}, 3000);
+    }, "image/png");
+  }
+  function renderStoryboard(scenes, imgs, nama){
+    var wrap = document.createElement("article"); wrap.className = "card";
+    var h = document.createElement("h3"); h.textContent = "Storyboard video 8 detik"; h.style.marginBottom = "6px"; wrap.appendChild(h);
+    var hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Urutan adegan untuk perintah Flow. Gambarnya diambil dari foto produkmu, jadi produknya tidak berubah. Unduh bingkai awal untuk dipakai di Frames to Video."; wrap.appendChild(hint);
+    var cv = document.createElement("canvas"); cv.style.cssText = "width:100%;max-width:340px;height:auto;border-radius:14px;display:block;margin:10px 0"; wrap.appendChild(cv);
+    var row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
+    var b1 = document.createElement("button"); b1.type = "button"; b1.className = "btn ghost"; b1.textContent = "Unduh storyboard";
+    var b2 = document.createElement("button"); b2.type = "button"; b2.className = "btn ghost"; b2.textContent = "Unduh bingkai awal 9:16";
+    row.appendChild(b1); row.appendChild(b2); wrap.appendChild(row);
+    var L = [];
+    var ready = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load("600 46px Fredoka"), document.fonts.load("500 26px Nunito")]).catch(function(){}) : Promise.resolve();
+    loadImgs(imgs).then(function(l){ L = l; if(!L.length) return; return ready.then(function(){ drawStoryboard(cv, L, scenes.slice(0,4), nama) }); });
+    b1.onclick = function(){ saveCv(cv, "storyboard.png") };
+    b2.onclick = function(){ if(!L.length) return; var fr = document.createElement("canvas"); drawFrame(fr, L[0]); saveCv(fr, "bingkai-awal.png") };
+    out().appendChild(wrap);
+  }
+
+  function renderMain(d, link, imgs){
+    var p = d.produk || {};
+    var tags = (d.hashtag || []).map(function(h){h = String(h).trim().replace(/\s+/g,""); return h && h.charAt(0)==="#" ? h : (h ? "#" + h : "")}).filter(Boolean);
+    var tag5 = tags.slice(0,5).join(" "), tag6 = tags.slice(0,6).join(" ");
+    var ring = [p.nama && ("Nama: " + p.nama), p.harga && ("Harga: " + p.harga), p.info && ("Info: " + p.info)].filter(Boolean).join("\n");
+    var items = [{label:"Terbaca dari screenshot", teks:(ring || "Belum ada info yang terbaca.") + "\n\nCek dulu. Kalau ada yang salah, tulis yang benar di Opsi lain lalu buat ulang."}];
+    (d.facebook || []).forEach(function(t,i){items.push({label:"Facebook " + (i+1), teks: t + "\n\nLink: " + link + (tag5 ? "\n\n" + tag5 : "")})});
+    (d.wa || []).forEach(function(t,i){items.push({label:"Status WA " + (i+1), teks: t + "\nLink: " + link})});
+    if(d.tiktok) items.push({label:"Caption TikTok", teks: d.tiktok + (tag6 ? "\n\n" + tag6 : "")});
+    if(tags.length) items.push({label:"Hashtag", teks: tags.join(" ")});
+    showCards(items, false);
+    if(Array.isArray(d.gambar) && imgs.length) renderGambar(d.gambar, imgs);
+    if(Array.isArray(d.scenes) && d.scenes.length && imgs.length) renderStoryboard(d.scenes, imgs, p.nama || p.jenis || "Produk");
+    var more = [];
+    if(d.flow) more.push({label:"Perintah Flow (tempel langsung)", teks:d.flow});
+    if(d.voiceover) more.push({label:"Voice over 8 detik", teks:d.voiceover});
+    if(more.length) showCards(more, false, true);
+    out().appendChild(flowGuide());
   }
 
   $("go").onclick = async function(){
-    var T = tab; runTab = T; var imgs = images.slice(0,4);
+    var T = tab; runTab = T;
     var key = store.get("gk");
     if(!key){showError("Aplikasi belum disiapkan di perangkat ini. Buka tab Pengaturan untuk memasukkan key, atau buka link setup dari Dako."); return}
-    if(T!=="riset" && !$("jenis").value.trim()){showError("Isi jenis barang dulu."); return}
-    var btn = $("go"); btn.disabled = true; var old = btn.textContent; btn.textContent = "Sedang menulis...";
-    var parts = [{text: buildPrompt()}];
-    if(T!=="riset") images.forEach(function(src){parts.push({inline_data:{mime_type:"image/jpeg", data: src.split(",")[1]}})});
+    var link = "";
+    if(T==="buat"){
+      if(!images.length){showError("Unggah dulu screenshot foto produk."); return}
+      var mm = $("link").value.match(/https?:\/\/[^\s]+/);
+      if(!mm){showError("Tempel link affiliate produk dulu."); return}
+      link = mm[0].replace(/[),.;]+$/,"");
+    }
+    var btn = $("go"); btn.disabled = true; btn.textContent = "Sedang menulis...";
+    var imgs = images.slice(0,4), dsc = descs.slice(0,3);
     try{
-      var chosen = store.get("gm") || "gemini-3.8-flash";
-      var tryList = [chosen,"gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash"].filter(function(m,i,a){return a.indexOf(m)===i});
-      var modes = T==="riset" ? [true,false] : [false];
-      var r = null, j = {}, usedModel = "", usedSearch = false, lastMsg = "";
-      outer:
-      for(var si=0; si<modes.length; si++){
-        for(var mi=0; mi<tryList.length; mi++){
-          var model = tryList[mi], isG3 = /gemini-3/.test(model);
-          var gen = T==="riset" ? {} : {responseMimeType:"application/json"};
-          if(!isG3) gen.temperature = T==="riset" ? 0.5 : 0.9;
-          else if(T!=="riset") gen.thinkingConfig = {thinkingLevel:"low"};
-          var ps = parts;
-          if(T==="riset" && !modes[si]) ps = [{text: parts[0].text + "\n\n(Catatan: pencarian web tidak tersedia kali ini. Jangan mengaku punya data terbaru. Tulis sebagai dugaan dari pola musiman dan pengetahuan umum, dan beri keyakinan rendah.)"}];
-          var payload = {contents:[{role:"user",parts:ps}], generationConfig:gen};
-          if(modes[si]) payload.tools = [{google_search:{}}];
-          for(var at=0; at<3; at++){
-            r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
-              method:"POST",
-              headers:{"Content-Type":"application/json","x-goog-api-key":key},
-              body: JSON.stringify(payload)
-            });
-            try{ j = await r.json() }catch(e){ j = {} }
-            if(r.ok) break;
-            lastMsg = (j.error && j.error.message) || ("Kode " + r.status);
-            if(r.status>=500 && at<2){
-              btn.textContent = "Server sedang ramai, mencoba lagi...";
-              await new Promise(function(res){setTimeout(res, 1500*(at+1))});
-              continue;
-            }
-            break;
-          }
-          if(r.ok){ usedModel = model; usedSearch = modes[si]; break outer; }
-          if(r.status!==429 && r.status!==404 && r.status<500) break outer;
-        }
-      }
-      if(!r.ok){
-        var m = lastMsg;
-        if(r.status===429) m = "Kuota habis untuk model yang dicoba (" + tryList.join(", ") + "). Pesan dari Google: " + lastMsg.slice(0,280);
-        else if(r.status===404 || /no longer available/i.test(m)) m = "Model tidak tersedia untuk akun ini. Buka Pengaturan, lalu ganti Model dengan gemini-3.8-flash atau gemini-3.7-flash.";
-        if(r.status>=500) m = "Server Google sedang sibuk. Ini sementara, coba lagi beberapa menit lagi. Pesan dari Google: " + lastMsg.slice(0,200);
-        throw new Error(m);
-      }
-      function note(){
-        var t = [];
-        if(usedModel!==chosen) t.push("model " + usedModel + " dipakai karena " + chosen + " sedang tidak bisa");
-        if(T==="riset" && !usedSearch) t.push("tanpa pencarian web, jadi anggap hasilnya dugaan");
-        if(!t.length) return;
-        var p = document.createElement("p"); p.className = "hint"; p.textContent = "Catatan: " + t.join("; ") + "."; out().appendChild(p);
-      }
-      var txt = (((j.candidates||[])[0]||{}).content||{}).parts;
-      txt = txt ? txt.map(function(p){return p.text||""}).join("") : "";
-      if(T==="riset"){ if(!txt) throw new Error("Jawaban kosong. Coba lagi."); renderRiset(txt, j); note(); return; }
-      var data;
-      try{data = JSON.parse(txt.replace(/^```json|```$/g,"").trim())}catch(e){data = null}
-      if(data && Array.isArray(data.hasil)){ showCards(data.hasil); if(T==="video") out().insertBefore(flowGuide(), out().firstChild); if(T==="narasi" && Array.isArray(data.gambar) && imgs.length) renderGambar(data.gambar, imgs); }
-      else if(txt) showCards([{label:"Hasil", teks:txt}]);
-      else throw new Error("Jawaban kosong. Coba lagi atau ganti gambar.");
-      note();
+      var parts = [{text: T==="riset" ? buildRiset() : buildMain(imgs.length, dsc.length)}];
+      if(T==="buat") imgs.concat(dsc).forEach(function(src){parts.push({inline_data:{mime_type:"image/jpeg", data: src.split(",")[1]}})});
+      var res = await callGemini(parts, T==="riset", btn);
+      var cand = ((res.j.candidates||[])[0]||{}).content, txt = cand && cand.parts ? cand.parts.map(function(p){return p.text||""}).join("") : "";
+      if(!txt) throw new Error("Jawaban kosong. Coba lagi.");
+      if(T==="riset"){ renderRiset(txt, res.j); note(res); return }
+      var data = parseJson(txt);
+      if(!data || !Array.isArray(data.facebook)) throw new Error("Hasil belum terbaca dengan baik. Coba tekan tombolnya sekali lagi.");
+      renderMain(data, link, imgs);
+      note(res);
     }catch(e){
       showError("Gagal: " + e.message);
     }finally{
       btn.disabled = false; btn.textContent = goLabel(tab);
     }
   };
+
 })();
 </script>
 </body>
