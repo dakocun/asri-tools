@@ -55,6 +55,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .err{color:var(--warn);background:var(--soft);border-radius:14px;padding:12px 14px;margin-bottom:14px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .hide{display:none}
+.sech{font:600 15px "Fredoka","Nunito",system-ui,sans-serif;color:var(--accent);margin:20px 4px 8px}
 .card p{overflow-wrap:anywhere;line-height:1.6}
 .card.mini{padding:12px 16px;background:var(--soft);border-color:transparent;box-shadow:none}
 .card.mini h3{font-size:15px}
@@ -480,7 +481,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     var c = document.createElement("article"); c.className = "card";
     var h = document.createElement("h3"); h.textContent = "Cara membuat videonya di Flow"; h.style.marginBottom = "8px"; c.appendChild(h);
     var p = document.createElement("p");
-    p.textContent = "1. Buka Google Flow dan masuk dengan akun Google.\n2. Buat proyek baru, pilih Frames to Video, lalu unggah bingkai awal (unduh dari kartu Storyboard) sebagai gambar awal.\n3. Tempel Perintah Flow dari kartu di atas. Pilih Veo 3.1 Lite (10 kredit, hemat) atau Fast (20 kredit), durasi 8 detik, rasio 9:16.\n4. Tekan Generate, tunggu, lalu unduh videonya.\n5. Buka TikTok atau aplikasi edit video, tempel teks di layar dari storyboard dan voice over dari kartu di atas. Saat mengunggah, tautkan produk affiliate-nya.\n\nTanpa kredit video: buat gambar adegan dari Prompt gambar adegan di Flow (unggah foto produk sebagai acuan), lalu jadikan slideshow di TikTok atau CapCut dengan teks dari storyboard.";
+    p.textContent = "1. Buka Google Flow dan masuk dengan akun Google.\n2. Buat proyek baru, pilih Frames to Video, lalu unggah foto awal dari Langkah 1.\n3. Tempel Perintah Flow dari Langkah 2. Pilih Veo 3.1 Lite (10 kredit, hemat) atau Fast (20 kredit), durasi 8 detik, rasio 9:16.\n4. Tekan Generate, tunggu, lalu unduh videonya.\n5. Buka TikTok atau CapCut, tempel teks di layar dan voice over dari bagian B. Saat mengunggah, tautkan produk affiliate-nya.\n\nTanpa kredit video: pakai foto produk dan teks dari bagian B sebagai slideshow di TikTok atau CapCut.";
     c.appendChild(p);
     var n = document.createElement("p"); n.className = "hint"; n.style.marginTop = "10px";
     n.textContent = "Jatah gratis 50 kredit per hari, cukup untuk sekitar 5 klip Lite atau 2 klip Fast. Nama menu bisa sedikit berbeda. Cek hasilnya: produk di video harus tetap sama dengan aslinya.";
@@ -523,7 +524,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
 
   function buildMain(nFoto, nDesk){
     var gayaAku = store.get("gs"), cat = $("catatan").value.trim();
-    var schema = '{"produk":{"nama":"...","jenis":"...","harga":"...","info":"..."},"facebook":["...","..."],"wa":["...","...","..."],"tiktok":"...","hashtag":["#..."],"gambar":[{"judul":"...","sub":"..."}],"ide":{"konsep":"...","hook":"..."},"scenes":[{"detik":"0-2","label":"Hook","aksi":"...","teks":"...","fokus":"utuh","prompt_gambar":"..."}],"flow":"...","voiceover":"..."}';
+    var schema = '{"produk":{"nama":"...","jenis":"...","harga":"...","info":"..."},"facebook":["...","..."],"wa":["...","...","..."],"tiktok":"...","hashtag":["#..."],"gambar":[{"judul":"...","sub":"..."}],"ide":{"konsep":"...","hook":"..."},"scenes":[{"detik":"0-2","label":"Hook","aksi":"...","teks":"...","fokus":"utuh"}],"flow":"...","voiceover":"..."}';
     return "Kamu penulis konten afiliasi berbahasa Indonesia untuk akun olshop dan sosmed. Prinsip: soft-selling. Jangan terdengar promosi; jangan pakai kata seperti 'diskon', 'buruan', 'checkout sekarang'. Jangan mengarang spesifikasi, harga, atau klaim yang tidak ada di screenshot; kalau tidak terbaca, tulis secara umum atau kosongkan. " + GAYA + (gayaAku ? "Catatan gaya dari pemilik akun: " + gayaAku + ". " : "") +
       "\n\nGambar yang dilampirkan, urut: " + nFoto + " foto produk, lalu " + nDesk + " screenshot deskripsi barang. Baca teks di screenshot deskripsi untuk mengetahui nama produk, bahan, ukuran, fitur, harga, dan info seperti COD atau gratis ongkir. Foto produk dipakai untuk memahami tampilan barangnya." +
       (cat ? "\nCatatan dari pemilik akun (utamakan ini jika berbeda dengan screenshot): " + cat : "") +
@@ -536,9 +537,9 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       "- tiktok: caption maksimal 2 kalimat pendek, tanpa hashtag dan tanpa link.\n" +
       "- hashtag: 8 hashtag, campur yang umum dan yang spesifik jenis produk, huruf kecil tanpa spasi.\n" +
       "- gambar: tepat " + nFoto + " item, urut sesuai foto produk. 'judul' maksimal 6 kata yang bikin orang berhenti scroll, 'sub' maksimal 8 kata (boleh kosong).\n" +
-      "- ide: 'konsep' satu kalimat cerita pendek yang dekat dengan keseharian pembeli (misalnya pagi buru-buru, mau ke pengajian, ke pasar, kondangan), bukan sekadar foto katalog; 'hook' kalimat pembuka video maksimal 8 kata.\n" +
-      "- scenes: tepat 4 adegan untuk satu klip 8 detik. 'detik' berturut-turut '0-2','2-4','4-6','6-8'. 'label' berurutan Hook, Masalah, Solusi, Ajakan. 'aksi' maksimal 14 kata: apa yang tampak, kreatif dan berbeda di tiap adegan (suasana, properti, sudut kamera), bukan sekadar foto produk. 'teks' teks di layar maksimal 6 kata. 'fokus' salah satu dari: utuh, dekat, detail. 'prompt_gambar' prompt bahasa Inggris 25 sampai 45 kata untuk membuat gambar adegan itu di Google Flow dengan foto produk sebagai acuan: produk persis sama seperti di foto, tanpa orang dan tanpa wajah (pakai tata letak benda, digantung, di atas meja atau kursi, manekin tanpa wajah), suasana dan cahaya jelas, tanpa teks di gambar, rasio 9:16.\n" +
-      "- flow: satu prompt bahasa Inggris 60 sampai 90 kata untuk Google Flow mode Frames to Video dengan foto produk sebagai frame awal. Wajib memuat: produk persis sama seperti di foto (bentuk, warna, logo, tekstur); satu suasana lifestyle yang kreatif sesuai ide.konsep (bukan latar polos); hanya satu gerak kamera pelan; gerak alami yang halus seperti kain tertiup angin; cahaya lembut; tanpa teks di layar, tanpa logo atau watermark tambahan.\n" +
+      "- ide: 'konsep' satu kalimat cerita pendek yang dekat dengan keseharian pembeli (misalnya pagi buru-buru, mau ke pengajian, ke pasar, kondangan). Ceritanya disampaikan lewat teks di layar, bukan lewat banyak latar berbeda. 'hook' kalimat pembuka maksimal 8 kata.\n" +
+      "- scenes: tepat 4 adegan untuk SATU klip 8 detik yang direkam dalam SATU suasana dan SATU shot berkelanjutan dari foto produk. 'detik' berturut-turut '0-2','2-4','4-6','6-8'. 'label' berurutan Hook, Masalah, Solusi, Ajakan (peran cerita, disampaikan lewat teks di layar). 'aksi' maksimal 14 kata, hanya soal gerak kamera atau bagian produk yang disorot pada detik itu (misalnya 'kamera perlahan mendekat ke kain', 'menyorot jahitan dari dekat'), tanpa objek, orang, atau latar baru. 'teks' teks di layar maksimal 6 kata. 'fokus' salah satu dari: utuh, dekat, detail.\n" +
+      "- flow: satu prompt bahasa Inggris 70 sampai 100 kata untuk Google Flow mode Frames to Video, di mana foto produk menjadi frame awal. Awali dengan 'Animate this exact photo.' Wajib memuat: produk, latar, dan semua benda di foto tetap persis sama (bentuk, warna, logo, tekstur); tanpa objek atau orang baru; urutan gerak kamera berdasarkan waktu (0-2s, 2-4s, 4-6s, 6-8s) yang mengikuti 'aksi' tiap adegan di scenes; satu gerak kamera yang halus di tiap bagian; gerak alami yang halus seperti kain tertiup angin; cahaya lembut; tanpa teks di layar, tanpa logo atau watermark tambahan.\n" +
       "- voiceover: maksimal 20 kata, santai, cukup dibaca dalam 8 detik.";
   }
 
@@ -679,9 +680,9 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       wrapText(ctx, sc.aksi||"", pw).slice(0,3).forEach(function(ln){ctx.fillText(ln, x, yy); yy += 34});
     });
   }
-  function drawFrame(cv, it){
+  function drawFrame(cv, it, st){
     cv.width = 1080; cv.height = 1920;
-    paintPhoto(cv.getContext("2d"), it.im, it.an.r, 0, 0, 1080, 1920, {fit:"contain", zoom:1, px:0.5, py:0.5, auto:false, fx:null, fy:null}, 0);
+    paintPhoto(cv.getContext("2d"), it.im, st.rect, 0, 0, 1080, 1920, {fit:st.fit, zoom:1, px:0.5, py:0.5, auto:false, fx:null, fy:null}, 0);
   }
   function saveCv(cv, nama){
     cv.toBlob(function(bl){
@@ -689,20 +690,79 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
       setTimeout(function(){URL.revokeObjectURL(a.href)}, 3000);
     }, "image/png");
   }
+  function renderFrame(imgs){
+    var wrap = document.createElement("article"); wrap.className = "card";
+    var h = document.createElement("h3"); h.textContent = "Langkah 1: foto awal untuk Flow"; h.style.marginBottom = "6px"; wrap.appendChild(h);
+    var hint = document.createElement("p"); hint.className = "hint";
+    hint.textContent = "Geser kotak putih sampai hanya foto produknya yang terpilih (tanpa judul, harga, atau tampilan aplikasi). Hasilnya tampil di sebelahnya. Kalau fotonya sudah bersih, centang Pakai seluruh gambar.";
+    wrap.appendChild(hint);
+    var L = [], cur = 0, st = {fit:"contain", rect:null, whole:false, bw:1, bx:0, by:0};
+    var row = document.createElement("div"); row.style.cssText = "display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin:8px 0";
+    var picker = document.createElement("div"); picker.style.cssText = "position:relative;width:200px;max-width:100%;overflow:hidden;border-radius:10px;line-height:0;user-select:none;touch-action:none";
+    var pim = document.createElement("img"); pim.alt = "Pilih area foto produk"; pim.style.cssText = "width:100%;height:auto;display:block;pointer-events:none"; picker.appendChild(pim);
+    var box = document.createElement("div"); box.style.cssText = "position:absolute;box-sizing:border-box;border:3px solid #fff;box-shadow:0 0 0 999px rgba(61,43,51,0.55);cursor:move;touch-action:none"; picker.appendChild(box);
+    var cv = document.createElement("canvas"); cv.style.cssText = "width:150px;max-width:100%;height:auto;border-radius:12px;display:block";
+    row.appendChild(picker); row.appendChild(cv); wrap.appendChild(row);
+    var sync = function(){
+      var it = L[cur]; if(!it) return;
+      var W = it.im.naturalWidth, H = it.im.naturalHeight;
+      st.bw = Math.min(Math.max(st.bw, 0.2), Math.min(1, H/W));
+      var bh = st.bw*W/H;
+      st.bx = Math.min(Math.max(st.bx, 0), 1-st.bw); st.by = Math.min(Math.max(st.by, 0), Math.max(0, 1-bh));
+      box.style.left = (st.bx*100) + "%"; box.style.top = (st.by*100) + "%"; box.style.width = (st.bw*100) + "%"; box.style.height = (bh*100) + "%";
+      st.rect = st.whole ? it.an.r : {sx:st.bx*W, sy:st.by*H, sw:st.bw*W, sh:st.bw*W};
+      picker.style.display = st.whole ? "none" : "block";
+      drawFrame(cv, it, st);
+    };
+    var det = document.createElement("div");
+    var ctl = function(text, el){var l = document.createElement("label"); l.textContent = text; l.style.cssText = "font-size:13px;margin:10px 0 3px"; det.appendChild(l); det.appendChild(el)};
+    var pick = document.createElement("select");
+    imgs.forEach(function(x,i){var o = document.createElement("option"); o.value = i; o.textContent = "Foto " + (i+1); pick.appendChild(o)});
+    if(imgs.length>1) ctl("Pakai foto ke-", pick);
+    var wl = document.createElement("label"); wl.style.cssText = "display:flex;gap:8px;align-items:center;font-size:13px;font-weight:400;margin:10px 0 0";
+    var wc = document.createElement("input"); wc.type = "checkbox"; wc.style.width = "auto"; wl.appendChild(wc); wl.appendChild(document.createTextNode("Pakai seluruh gambar (tanpa potong)")); det.appendChild(wl);
+    var sz = document.createElement("input"); sz.type = "range"; sz.min = 20; sz.max = 100; sz.value = 100; sz.style.padding = "0"; ctl("Ukuran kotak", sz);
+    var fit = document.createElement("select"); fit.innerHTML = '<option value="contain">Utuh (latar blur)</option><option value="cover">Isi penuh (dipotong)</option>'; ctl("Tampilan di video", fit);
+    wrap.appendChild(det);
+    var setDefaults = function(){
+      var it = L[cur], W = it.im.naturalWidth, H = it.im.naturalHeight;
+      st.whole = (H/W) < 1.6; st.fit = "contain"; st.bw = Math.min(1, H/W); st.bx = 0; st.by = Math.max(0, it.an.r.sy/H + 0.01);
+      wc.checked = st.whole; sz.value = Math.round(st.bw*100); fit.value = st.fit;
+      pim.src = imgs[cur]; sync();
+    };
+    var drag = null;
+    box.addEventListener("pointerdown", function(e){
+      var r = picker.getBoundingClientRect();
+      drag = {x:e.clientX, y:e.clientY, bx:st.bx, by:st.by, w:r.width || 1, h:r.height || 1};
+      try{box.setPointerCapture(e.pointerId)}catch(_){}
+      e.preventDefault();
+    });
+    box.addEventListener("pointermove", function(e){
+      if(!drag) return;
+      st.bx = drag.bx + (e.clientX-drag.x)/drag.w; st.by = drag.by + (e.clientY-drag.y)/drag.h; sync();
+    });
+    ["pointerup","pointercancel"].forEach(function(t){box.addEventListener(t, function(){drag = null})});
+    pick.onchange = function(){cur = +pick.value; setDefaults()};
+    wc.onchange = function(){st.whole = wc.checked; sync()};
+    sz.oninput = function(){st.bw = +sz.value/100; sync()};
+    fit.onchange = function(){st.fit = fit.value; sync()};
+    var b = document.createElement("button"); b.type = "button"; b.className = "btn ghost"; b.textContent = "Unduh foto awal"; b.style.marginTop = "12px"; wrap.appendChild(b);
+    b.onclick = function(){ if(L.length) saveCv(cv, "foto-awal-flow.png") };
+    loadImgs(imgs).then(function(l){ L = l; if(L.length) setDefaults() });
+    out().appendChild(wrap);
+  }
   function renderStoryboard(scenes, imgs, nama, konsep){
     var wrap = document.createElement("article"); wrap.className = "card";
     var h = document.createElement("h3"); h.textContent = "Storyboard video 8 detik"; h.style.marginBottom = "6px"; wrap.appendChild(h);
-    var hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Papan cerita video 8 detik: tiap adegan punya peran (Hook, Masalah, Solusi, Ajakan). Foto produk dipakai apa adanya, tidak diubah AI. Untuk suasana yang lebih kreatif, pakai Prompt gambar adegan di bawah lewat Flow."; wrap.appendChild(hint);
+    var hint = document.createElement("p"); hint.className = "hint"; hint.textContent = "Panduan cukup dilihat, tidak perlu diunggah ke Flow. Videonya satu shot berkelanjutan dari satu foto: ceritanya (Hook, Masalah, Solusi, Ajakan) disampaikan lewat teks di layar, sedangkan kameranya bergerak mendekat dan menyorot bagian produk."; wrap.appendChild(hint);
     var cv = document.createElement("canvas"); cv.style.cssText = "width:100%;max-width:340px;height:auto;border-radius:14px;display:block;margin:10px 0"; wrap.appendChild(cv);
     var row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
     var b1 = document.createElement("button"); b1.type = "button"; b1.className = "btn ghost"; b1.textContent = "Unduh storyboard";
-    var b2 = document.createElement("button"); b2.type = "button"; b2.className = "btn ghost"; b2.textContent = "Unduh bingkai awal 9:16";
-    row.appendChild(b1); row.appendChild(b2); wrap.appendChild(row);
+        row.appendChild(b1); wrap.appendChild(row);
     var L = [];
     var ready = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load("600 46px Fredoka"), document.fonts.load("500 26px Nunito")]).catch(function(){}) : Promise.resolve();
     loadImgs(imgs).then(function(l){ L = l; if(!L.length) return; return ready.then(function(){ drawStoryboard(cv, L, scenes.slice(0,4), nama, konsep) }); });
     b1.onclick = function(){ saveCv(cv, "storyboard.png") };
-    b2.onclick = function(){ if(!L.length) return; var fr = document.createElement("canvas"); drawFrame(fr, L[0]); saveCv(fr, "bingkai-awal.png") };
     out().appendChild(wrap);
   }
 
@@ -737,17 +797,20 @@ body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset
     });
 
     into(secs.video, function(){
-      var v = [];
-      if(ide.konsep || ide.hook) v.push({label:"Ide cerita", teks:[ide.konsep, ide.hook && ("Hook: " + ide.hook)].filter(Boolean).join("\n")});
-      if(v.length) showCards(v, false, true);
       var sc = Array.isArray(d.scenes) ? d.scenes : [];
-      if(sc.length && imgs.length) renderStoryboard(sc, imgs, p.nama || p.jenis || "Produk", ide.konsep || "");
-      var more = [];
-      if(d.flow) more.push({label:"Perintah Flow (tempel langsung)", teks:d.flow});
-      sc.slice(0,4).forEach(function(x,i){ if(x.prompt_gambar) more.push({label:"Prompt gambar adegan " + (i+1) + " (" + (x.label || "") + ")", teks:x.prompt_gambar}) });
-      if(d.voiceover) more.push({label:"Voice over 8 detik", teks:d.voiceover});
-      if(more.length) showCards(more, false, true);
+      var head = function(t){var e = document.createElement("div"); e.className = "sech"; e.textContent = t; outOverride.appendChild(e)};
+      if(ide.konsep || ide.hook) showCards([{label:"Ide cerita", mini:true, teks:[ide.konsep, ide.hook && ("Hook: " + ide.hook)].filter(Boolean).join("\n")}], false, true);
+      head("A. Di Google Flow (pakai 2 ini)");
+      if(imgs.length) renderFrame(imgs);
+      if(d.flow) showCards([{label:"Langkah 2: Perintah Flow (tempel langsung)", teks:d.flow}], false, true);
       outOverride.appendChild(flowGuide());
+      head("B. Setelah videonya jadi (di TikTok atau CapCut)");
+      var after = [];
+      if(sc.length) after.push({label:"Teks di layar per adegan", teks: sc.slice(0,4).map(function(x){return (x.detik||"") + " detik: " + (x.teks||"")}).join("\n")});
+      if(d.voiceover) after.push({label:"Voice over 8 detik", teks:d.voiceover});
+      if(after.length) showCards(after, false, true);
+      head("C. Referensi (opsional)");
+      if(sc.length && imgs.length) renderStoryboard(sc, imgs, p.nama || p.jenis || "Produk", ide.konsep || "");
     });
   }
 
